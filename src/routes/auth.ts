@@ -6,7 +6,7 @@ import { createAuthController } from '../controllers/authController.js';
 export async function authRoutes(app: FastifyInstance) {
 	const repo = createUserRepository(app);
 	const service = createAuthService(app, {
-		getUserById: (id, email) => repo.getById(id, email),
+		getUserById: (id) => repo.getById(id),
 	});
 	const controller = createAuthController(app, service);
 

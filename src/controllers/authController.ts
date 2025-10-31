@@ -21,8 +21,7 @@ export function createAuthController(
 			return reply.code(400).send({ message: 'Invalid body' });
 
 		const { accessToken, refreshToken } = await authService.issueTokens(
-			parsed.data.userId,
-			parsed.data.email
+			parsed.data.userId
 		);
 
 		const commonCookie = {

@@ -1,9 +1,9 @@
 -- Create template_api_todos table
 -- Note: id is generated at the application level using UUIDv7
--- Note: user_id is also a UUID (from JWT payload)
+-- Note: user_id references template_api_users(id)
 CREATE TABLE IF NOT EXISTS template_api_todos (
 	id UUID PRIMARY KEY,
-	user_id UUID NOT NULL,
+	user_id UUID NOT NULL REFERENCES template_api_users(id) ON DELETE CASCADE,
 	title VARCHAR(255) NOT NULL,
 	description TEXT,
 	completed BOOLEAN DEFAULT FALSE NOT NULL,
