@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import type { User } from '../repositories/userRepository.js';
+import type { User } from '../domain/user/user.schema.js';
 
 export function createAuthService(
 	app: FastifyInstance,

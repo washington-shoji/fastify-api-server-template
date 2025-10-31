@@ -1,6 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-
-export type User = { id: string; email: string | null };
+import type { User } from '../domain/user/user.schema.js';
 
 export function createUserRepository(app: FastifyInstance) {
 	return {
