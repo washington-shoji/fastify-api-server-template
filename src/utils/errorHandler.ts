@@ -12,12 +12,16 @@ export function setupErrorHandler(app: FastifyInstance) {
 			request: FastifyRequest,
 			reply: FastifyReply
 		) => {
-			// Log error for debugging
+			// Log error for debugging with request ID
+			const requestId = (request as any).requestId;
 			request.log.error(
 				{
 					url: request.url,
 					method: request.method,
 					statusCode: reply.statusCode,
+					requestId,
+					error: error.message,
+					stack: error.stack,
 				},
 				error.message || 'Error occurred'
 			);

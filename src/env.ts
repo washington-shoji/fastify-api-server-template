@@ -28,6 +28,16 @@ const envSchema = z.object({
 		.string()
 		.optional()
 		.transform((val) => (val ? Number(val) : undefined)),
+	// Rate limiting configuration
+	RATE_LIMIT_MAX: z
+		.string()
+		.optional()
+		.transform((val) => (val ? Number(val) : undefined)),
+	RATE_LIMIT_TIME_WINDOW: z.string().optional(),
+	// Logging configuration
+	LOG_LEVEL: z
+		.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
+		.optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

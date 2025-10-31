@@ -9,17 +9,37 @@ import { authRoutes } from './routes/auth.js';
 import { todoRoutes } from './routes/todo.js';
 import { setupErrorHandler } from './utils/errorHandler.js';
 import { setupAuthMiddleware } from './middlewares/auth.middleware.js';
+import { setupRateLimit } from './middlewares/rateLimit.middleware.js';
+import { setupRequestIdMiddleware } from './middlewares/requestId.middleware.js';
 
 async function buildServer() {
 	const app = Fastify({
-		logger: true,
+		logger: {
+			level: process.env.LOG_LEVEL || 'info',
+			// Add request ID to logs
+			serializers: {
+				req: (req) => {
+					return {
+						method: req.method,
+						url: req.url,
+						requestId: (req as any).requestId,
+					};
+				},
+			},
+		},
 	});
 
 	// Setup global error handler first
 	setupErrorHandler(app);
 
+	// Setup request ID middleware for correlation tracking
+	setupRequestIdMiddleware(app);
+
 	// Setup auth middleware to extract userId automatically
 	setupAuthMiddleware(app);
+
+	// Setup rate limiting (before routes)
+	await setupRateLimit(app);
 
 	// Configure CORS based on environment
 	await app.register(cors, {
