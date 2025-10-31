@@ -1,5 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { uuidv7 } from 'uuidv7';
+import { eq, and, desc } from 'drizzle-orm';
+import { todos } from '../db/schema/todos';
 import type {
 	Todo,
 	CreateTodo,
@@ -10,52 +12,62 @@ export function createTodoRepository(app: FastifyInstance) {
 	return {
 		async create(data: CreateTodo, userId: string): Promise<Todo> {
 			const id = uuidv7();
-			const result = await app.db.query<Todo>(
-				`INSERT INTO template_api_todos (id, user_id, title, description, completed, created_at, updated_at)
-				 VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-				 RETURNING id, user_id, title, description, completed, created_at, updated_at`,
-				[
+			const [result] = await app.db
+				.insert(todos)
+				.values({
 					id,
 					userId,
-					data.title,
-					data.description ?? null,
-					data.completed ?? false,
-				]
-			);
+					title: data.title,
+					description: data.description ?? null,
+					completed: data.completed ?? false,
+				})
+				.returning();
+
 			return {
-				...result.rows[0],
-				created_at: result.rows[0].created_at,
-				updated_at: result.rows[0].updated_at,
+				id: result.id,
+				user_id: result.userId,
+				title: result.title,
+				description: result.description,
+				completed: result.completed,
+				created_at: result.createdAt,
+				updated_at: result.updatedAt,
 			};
 		},
 
 		async getById(id: string, userId: string): Promise<Todo | null> {
-			const result = await app.db.query<Todo>(
-				`SELECT id, user_id, title, description, completed, created_at, updated_at
-				 FROM template_api_todos
-				 WHERE id = $1 AND user_id = $2`,
-				[id, userId]
-			);
-			if (result.rows.length === 0) return null;
+			const [result] = await app.db
+				.select()
+				.from(todos)
+				.where(and(eq(todos.id, id), eq(todos.userId, userId)))
+				.limit(1);
+
+			if (!result) return null;
 			return {
-				...result.rows[0],
-				created_at: result.rows[0].created_at,
-				updated_at: result.rows[0].updated_at,
+				id: result.id,
+				user_id: result.userId,
+				title: result.title,
+				description: result.description,
+				completed: result.completed,
+				created_at: result.createdAt,
+				updated_at: result.updatedAt,
 			};
 		},
 
 		async getAll(userId: string): Promise<Todo[]> {
-			const result = await app.db.query<Todo>(
-				`SELECT id, user_id, title, description, completed, created_at, updated_at
-				 FROM template_api_todos
-				 WHERE user_id = $1
-				 ORDER BY created_at DESC`,
-				[userId]
-			);
-			return result.rows.map((row) => ({
-				...row,
-				created_at: row.created_at,
-				updated_at: row.updated_at,
+			const result = await app.db
+				.select()
+				.from(todos)
+				.where(eq(todos.userId, userId))
+				.orderBy(desc(todos.createdAt));
+
+			return result.map((row) => ({
+				id: row.id,
+				user_id: row.userId,
+				title: row.title,
+				description: row.description,
+				completed: row.completed,
+				created_at: row.createdAt,
+				updated_at: row.updatedAt,
 			}));
 		},
 
@@ -64,52 +76,37 @@ export function createTodoRepository(app: FastifyInstance) {
 			data: UpdateTodo,
 			userId: string
 		): Promise<Todo | null> {
-			const updates: string[] = [];
-			const values: unknown[] = [];
-			let paramCount = 1;
+			const updateData: Partial<typeof todos.$inferInsert> = {};
+			if (data.title !== undefined) updateData.title = data.title;
+			if (data.description !== undefined)
+				updateData.description = data.description;
+			if (data.completed !== undefined) updateData.completed = data.completed;
+			updateData.updatedAt = new Date();
 
-			if (data.title !== undefined) {
-				updates.push(`title = $${paramCount++}`);
-				values.push(data.title);
-			}
-			if (data.description !== undefined) {
-				updates.push(`description = $${paramCount++}`);
-				values.push(data.description);
-			}
-			if (data.completed !== undefined) {
-				updates.push(`completed = $${paramCount++}`);
-				values.push(data.completed);
-			}
+			const [result] = await app.db
+				.update(todos)
+				.set(updateData)
+				.where(and(eq(todos.id, id), eq(todos.userId, userId)))
+				.returning();
 
-			if (updates.length === 0) {
-				return this.getById(id, userId);
-			}
-
-			updates.push(`updated_at = NOW()`);
-			values.push(id, userId);
-
-			const result = await app.db.query<Todo>(
-				`UPDATE template_api_todos
-				 SET ${updates.join(', ')}
-				 WHERE id = $${paramCount} AND user_id = $${paramCount + 1}
-				 RETURNING id, user_id, title, description, completed, created_at, updated_at`,
-				values
-			);
-
-			if (result.rows.length === 0) return null;
+			if (!result) return null;
 			return {
-				...result.rows[0],
-				created_at: result.rows[0].created_at,
-				updated_at: result.rows[0].updated_at,
+				id: result.id,
+				user_id: result.userId,
+				title: result.title,
+				description: result.description,
+				completed: result.completed,
+				created_at: result.createdAt,
+				updated_at: result.updatedAt,
 			};
 		},
 
 		async delete(id: string, userId: string): Promise<boolean> {
-			const result = await app.db.query(
-				`DELETE FROM template_api_todos WHERE id = $1 AND user_id = $2`,
-				[id, userId]
-			);
-			return (result.rowCount ?? 0) > 0;
+			const result = await app.db
+				.delete(todos)
+				.where(and(eq(todos.id, id), eq(todos.userId, userId)))
+				.returning();
+			return result.length > 0;
 		},
 	};
 }

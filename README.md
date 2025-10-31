@@ -28,6 +28,10 @@ npm run dev
 - `npm run dev`: Run with `ts-node-dev` (watch mode)
 - `npm run build`: Compile TypeScript to `dist/`
 - `npm start`: Run compiled app
+- `npm run db:generate`: Generate Drizzle migrations from schema changes
+- `npm run db:migrate`: Run migrations against database
+- `npm run db:push`: Push schema changes directly (dev only)
+- `npm run db:studio`: Open Drizzle Studio (database GUI)
 
 ## Environment
 
@@ -43,18 +47,27 @@ Optional (with sensible defaults):
 
 ## Project structure
 
-```
+```text
 src/
   env.ts               # Load + validate env
   server.ts            # Fastify app, plugins, routes
+  db/
+    index.ts           # Drizzle ORM setup
+    migrate.ts          # Migration runner
+    schema/
+      users.ts         # User schema definition
+      todos.ts         # Todo schema definition
   plugins/
-    db.ts              # pg Pool decorator
+    db.ts              # Drizzle DB plugin
     jwt.ts             # jwt + helpers + authenticate
-  routes/
-    auth.ts            # /auth endpoints
-    health.ts          # /health
+  repositories/        # Data access layer
+  services/            # Business logic layer
+  controllers/         # HTTP handlers
+  routes/              # Route definitions
+  domain/              # Domain schemas (Zod validation)
   types/
     fastify.d.ts       # Type augmentation
+drizzle/               # Generated migrations
 ```
 
 ## Core concepts
@@ -75,8 +88,10 @@ See `docs/API.md` for full request/response examples.
 ## Development
 
 - Edit `.env`, run `npm run dev`.
+- Run migrations: `npm run db:migrate` (first time setup)
+- Generate migrations after schema changes: `npm run db:generate`
 - Use `Authorization: Bearer <accessToken>` or rely on `access_token` cookie for protected routes.
-- DB pool probes on startup (`SELECT 1`) to fail fast; remove if you prefer lazy connections.
+- Database connection uses Drizzle ORM with full type safety.
 
 ## Deployment
 
