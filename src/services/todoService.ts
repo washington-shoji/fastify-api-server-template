@@ -3,11 +3,15 @@ import type {
 	UpdateTodo,
 	TodoResponse,
 } from '../domain/todo/todo.schema.js';
+import type { PaginationParams, PaginatedResult } from '../utils/pagination.js';
 
 export function createTodoService(deps: {
 	createTodo: (data: CreateTodo, userId: string) => Promise<TodoResponse>;
 	getTodoById: (id: string, userId: string) => Promise<TodoResponse | null>;
-	getAllTodos: (userId: string) => Promise<TodoResponse[]>;
+	getAllTodos: (
+		userId: string,
+		pagination?: PaginationParams
+	) => Promise<PaginatedResult<TodoResponse>>;
 	updateTodo: (
 		id: string,
 		data: UpdateTodo,
@@ -27,8 +31,11 @@ export function createTodoService(deps: {
 			return deps.getTodoById(id, userId);
 		},
 
-		async getAllTodos(userId: string): Promise<TodoResponse[]> {
-			return deps.getAllTodos(userId);
+		async getAllTodos(
+			userId: string,
+			pagination?: PaginationParams
+		): Promise<PaginatedResult<TodoResponse>> {
+			return deps.getAllTodos(userId, pagination);
 		},
 
 		async updateTodo(

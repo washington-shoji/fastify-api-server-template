@@ -21,5 +21,7 @@ declare module 'fastify' {
 			exp?: number;
 			[key: string]: unknown;
 		};
+		// userId is automatically extracted from user.sub by auth middleware
+		userId?: string;
 	}
 }

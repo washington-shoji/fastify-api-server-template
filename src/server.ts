@@ -8,6 +8,7 @@ import jwtPlugin from './plugins/jwt.js';
 import { authRoutes } from './routes/auth.js';
 import { todoRoutes } from './routes/todo.js';
 import { setupErrorHandler } from './utils/errorHandler.js';
+import { setupAuthMiddleware } from './middlewares/auth.middleware.js';
 
 async function buildServer() {
 	const app = Fastify({
@@ -16,6 +17,9 @@ async function buildServer() {
 
 	// Setup global error handler first
 	setupErrorHandler(app);
+
+	// Setup auth middleware to extract userId automatically
+	setupAuthMiddleware(app);
 
 	// Configure CORS based on environment
 	await app.register(cors, {

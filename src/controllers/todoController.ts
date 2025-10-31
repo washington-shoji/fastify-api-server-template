@@ -4,17 +4,20 @@ import {
 	UpdateTodoSchema,
 } from '../domain/todo/todo.schema.js';
 import type { createTodoService } from '../services/todoService.js';
-import { ValidationError, NotFoundError } from '../utils/errors.js';
+import {
+	ValidationError,
+	NotFoundError,
+	UnauthorizedError,
+} from '../utils/errors.js';
 
 export function createTodoController(
 	app: FastifyInstance,
 	todoService: ReturnType<typeof createTodoService>
 ) {
 	async function createHandler(request: FastifyRequest, reply: FastifyReply) {
-		const user = request.user as { sub?: string } | undefined;
-		const userId = user?.sub;
+		const userId = request.userId;
 		if (!userId) {
-			return reply.code(401).send({ message: 'Unauthorized' });
+			throw new UnauthorizedError();
 		}
 
 		const parsed = CreateTodoSchema.safeParse(request.body);
@@ -27,10 +30,9 @@ export function createTodoController(
 	}
 
 	async function getByIdHandler(request: FastifyRequest, reply: FastifyReply) {
-		const user = request.user as { sub?: string } | undefined;
-		const userId = user?.sub;
+		const userId = request.userId;
 		if (!userId) {
-			return reply.code(401).send({ message: 'Unauthorized' });
+			throw new UnauthorizedError();
 		}
 
 		const { id } = request.params as { id: string };
@@ -44,21 +46,27 @@ export function createTodoController(
 	}
 
 	async function getAllHandler(request: FastifyRequest, reply: FastifyReply) {
-		const user = request.user as { sub?: string } | undefined;
-		const userId = user?.sub;
+		const userId = request.userId;
 		if (!userId) {
-			return reply.code(401).send({ message: 'Unauthorized' });
+			throw new UnauthorizedError();
 		}
 
-		const todos = await todoService.getAllTodos(userId);
-		return reply.send({ todos, count: todos.length });
+		const query = request.query as { cursor?: string; limit?: string };
+		const paginationParams = {
+			cursor: query.cursor,
+			limit: query.limit
+				? Math.min(Math.max(parseInt(query.limit, 10), 1), 100)
+				: 20,
+		};
+
+		const result = await todoService.getAllTodos(userId, paginationParams);
+		return reply.send(result);
 	}
 
 	async function updateHandler(request: FastifyRequest, reply: FastifyReply) {
-		const user = request.user as { sub?: string } | undefined;
-		const userId = user?.sub;
+		const userId = request.userId;
 		if (!userId) {
-			return reply.code(401).send({ message: 'Unauthorized' });
+			throw new UnauthorizedError();
 		}
 
 		const { id } = request.params as { id: string };
@@ -78,10 +86,9 @@ export function createTodoController(
 	}
 
 	async function deleteHandler(request: FastifyRequest, reply: FastifyReply) {
-		const user = request.user as { sub?: string } | undefined;
-		const userId = user?.sub;
+		const userId = request.userId;
 		if (!userId) {
-			return reply.code(401).send({ message: 'Unauthorized' });
+			throw new UnauthorizedError();
 		}
 
 		const { id } = request.params as { id: string };

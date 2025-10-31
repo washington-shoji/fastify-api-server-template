@@ -27,11 +27,14 @@ export class NotFoundError extends AppError {
 }
 
 export class ValidationError extends AppError {
-	public readonly errors?: Array<{ path: string[]; message: string }>;
+	public readonly errors?: Array<{
+		path: (string | number)[];
+		message: string;
+	}>;
 
 	constructor(
 		message = 'Validation failed',
-		errors?: Array<{ path: string[]; message: string }>
+		errors?: Array<{ path: (string | number)[]; message: string }>
 	) {
 		super(message, 400);
 		this.errors = errors;
