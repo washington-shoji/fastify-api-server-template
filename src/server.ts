@@ -7,14 +7,19 @@ import dbPlugin from './plugins/db.js';
 import jwtPlugin from './plugins/jwt.js';
 import { authRoutes } from './routes/auth.js';
 import { todoRoutes } from './routes/todo.js';
+import { setupErrorHandler } from './utils/errorHandler.js';
 
 async function buildServer() {
 	const app = Fastify({
 		logger: true,
 	});
 
+	// Setup global error handler first
+	setupErrorHandler(app);
+
+	// Configure CORS based on environment
 	await app.register(cors, {
-		origin: true,
+		origin: env.CORS_ORIGINS,
 		credentials: true,
 	});
 

@@ -53,36 +53,33 @@ export function createAuthController(
 			| string
 			| undefined;
 		const token = tokenFromBody || tokenFromCookie;
-		if (!token)
+		if (!token) {
 			return reply.code(401).send({ message: 'Missing refresh token' });
-
-		try {
-			const { accessToken, refreshToken } = await authService.refreshTokens(
-				token
-			);
-
-			const commonCookie = {
-				httpOnly: true,
-				sameSite: 'lax' as const,
-				secure: env.COOKIE_SECURE === 'true',
-				domain: env.COOKIE_DOMAIN,
-				path: '/',
-			};
-
-			reply
-				.setCookie('access_token', accessToken, {
-					...commonCookie,
-					maxAge: 60 * 60,
-				})
-				.setCookie('refresh_token', refreshToken, {
-					...commonCookie,
-					maxAge: 7 * 24 * 60 * 60,
-				});
-
-			return { accessToken, refreshToken };
-		} catch {
-			return reply.code(401).send({ message: 'Invalid refresh token' });
 		}
+
+		const { accessToken, refreshToken } = await authService.refreshTokens(
+			token
+		);
+
+		const commonCookie = {
+			httpOnly: true,
+			sameSite: 'lax' as const,
+			secure: env.COOKIE_SECURE === 'true',
+			domain: env.COOKIE_DOMAIN,
+			path: '/',
+		};
+
+		reply
+			.setCookie('access_token', accessToken, {
+				...commonCookie,
+				maxAge: 60 * 60,
+			})
+			.setCookie('refresh_token', refreshToken, {
+				...commonCookie,
+				maxAge: 7 * 24 * 60 * 60,
+			});
+
+		return { accessToken, refreshToken };
 	}
 
 	async function meHandler(request: FastifyRequest) {

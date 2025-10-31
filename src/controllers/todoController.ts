@@ -4,6 +4,7 @@ import {
 	UpdateTodoSchema,
 } from '../domain/todo/todo.schema.js';
 import type { createTodoService } from '../services/todoService.js';
+import { ValidationError, NotFoundError } from '../utils/errors.js';
 
 export function createTodoController(
 	app: FastifyInstance,
@@ -18,10 +19,7 @@ export function createTodoController(
 
 		const parsed = CreateTodoSchema.safeParse(request.body);
 		if (!parsed.success) {
-			return reply.code(400).send({
-				message: 'Invalid request body',
-				errors: parsed.error.errors,
-			});
+			throw new ValidationError('Invalid request body', parsed.error.errors);
 		}
 
 		const todo = await todoService.createTodo(parsed.data, userId);
@@ -39,7 +37,7 @@ export function createTodoController(
 		const todo = await todoService.getTodoById(id, userId);
 
 		if (!todo) {
-			return reply.code(404).send({ message: 'Todo not found' });
+			throw new NotFoundError('Todo not found');
 		}
 
 		return reply.send(todo);
@@ -67,16 +65,13 @@ export function createTodoController(
 		const parsed = UpdateTodoSchema.safeParse(request.body);
 
 		if (!parsed.success) {
-			return reply.code(400).send({
-				message: 'Invalid request body',
-				errors: parsed.error.errors,
-			});
+			throw new ValidationError('Invalid request body', parsed.error.errors);
 		}
 
 		const todo = await todoService.updateTodo(id, parsed.data, userId);
 
 		if (!todo) {
-			return reply.code(404).send({ message: 'Todo not found' });
+			throw new NotFoundError('Todo not found');
 		}
 
 		return reply.send(todo);
@@ -93,7 +88,7 @@ export function createTodoController(
 		const deleted = await todoService.deleteTodo(id, userId);
 
 		if (!deleted) {
-			return reply.code(404).send({ message: 'Todo not found' });
+			throw new NotFoundError('Todo not found');
 		}
 
 		return reply.code(204).send();

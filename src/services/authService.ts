@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { User } from '../domain/user/user.schema.js';
+import { NotFoundError, UnauthorizedError } from '../utils/errors.js';
 
 export function createAuthService(
 	app: FastifyInstance,
@@ -11,7 +12,7 @@ export function createAuthService(
 		async issueTokens(userId: string) {
 			const user = await deps.getUserById(userId);
 			if (!user) {
-				throw new Error('User not found');
+				throw new NotFoundError('User not found');
 			}
 			const payload = { sub: user.id, email: user.email };
 			const accessToken = await app.signAccessToken(payload);
@@ -20,20 +21,27 @@ export function createAuthService(
 		},
 
 		async refreshTokens(refreshToken: string) {
-			const payload = (await app.verifyRefreshToken(refreshToken)) as any;
-			const user = await deps.getUserById(String(payload.sub));
-			if (!user) {
-				throw new Error('User not found');
+			try {
+				const payload = (await app.verifyRefreshToken(refreshToken)) as any;
+				const user = await deps.getUserById(String(payload.sub));
+				if (!user) {
+					throw new NotFoundError('User not found');
+				}
+				const newAccess = await app.signAccessToken({
+					sub: user.id,
+					email: user.email,
+				});
+				const newRefresh = await app.signRefreshToken({
+					sub: user.id,
+					email: user.email,
+				});
+				return { accessToken: newAccess, refreshToken: newRefresh, user };
+			} catch (error) {
+				if (error instanceof NotFoundError) {
+					throw error;
+				}
+				throw new UnauthorizedError('Invalid refresh token');
 			}
-			const newAccess = await app.signAccessToken({
-				sub: user.id,
-				email: user.email,
-			});
-			const newRefresh = await app.signRefreshToken({
-				sub: user.id,
-				email: user.email,
-			});
-			return { accessToken: newAccess, refreshToken: newRefresh, user };
 		},
 	};
 }
