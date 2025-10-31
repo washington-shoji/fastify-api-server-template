@@ -113,7 +113,6 @@ Create a new todo.
 ```json
 {
 	"id": "018e5f5d-1234-7890-abcd-123456789abc",
-	"user_id": "550e8400-e29b-41d4-a716-446655440000",
 	"title": "Complete project",
 	"description": "Finish the Fastify API template",
 	"completed": false,
@@ -121,6 +120,8 @@ Create a new todo.
 	"updated_at": "2024-01-15T10:30:00.000Z"
 }
 ```
+
+**Note:** `user_id` is never exposed to clients for security reasons. User ownership is determined from the authentication context.
 
 ### GET `/todos`
 
@@ -135,7 +136,6 @@ Get all todos for the authenticated user.
 	"todos": [
 		{
 			"id": "018e5f5d-1234-7890-abcd-123456789abc",
-			"user_id": "550e8400-e29b-41d4-a716-446655440000",
 			"title": "Complete project",
 			"description": "Finish the Fastify API template",
 			"completed": false,
@@ -146,6 +146,8 @@ Get all todos for the authenticated user.
 	"count": 1
 }
 ```
+
+**Note:** `user_id` is never returned. Only todos owned by the authenticated user are returned.
 
 - Returns todos ordered by `created_at DESC`.
 - Only returns todos owned by the authenticated user.
@@ -165,7 +167,6 @@ Get a specific todo by ID.
 ```json
 {
 	"id": "018e5f5d-1234-7890-abcd-123456789abc",
-	"user_id": "550e8400-e29b-41d4-a716-446655440000",
 	"title": "Complete project",
 	"description": "Finish the Fastify API template",
 	"completed": false,
@@ -173,6 +174,8 @@ Get a specific todo by ID.
 	"updated_at": "2024-01-15T10:30:00.000Z"
 }
 ```
+
+**Note:** `user_id` is never exposed to clients.
 
 **Errors:**
 
@@ -203,7 +206,6 @@ Update a todo.
 ```json
 {
 	"id": "018e5f5d-1234-7890-abcd-123456789abc",
-	"user_id": "550e8400-e29b-41d4-a716-446655440000",
 	"title": "Updated title",
 	"description": "Updated description",
 	"completed": true,
@@ -211,6 +213,8 @@ Update a todo.
 	"updated_at": "2024-01-15T11:00:00.000Z"
 }
 ```
+
+**Note:** `user_id` is never exposed to clients.
 
 **Errors:**
 

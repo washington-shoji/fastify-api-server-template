@@ -26,3 +26,7 @@ export const UpdateTodoSchema = TodoSchema.partial().omit({
 export type Todo = z.infer<typeof TodoSchema>;
 export type CreateTodo = z.infer<typeof CreateTodoSchema>;
 export type UpdateTodo = z.infer<typeof UpdateTodoSchema>;
+
+// Response type without user_id (never expose to client)
+export const TodoResponseSchema = TodoSchema.omit({ user_id: true });
+export type TodoResponse = z.infer<typeof TodoResponseSchema>;

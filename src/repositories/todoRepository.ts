@@ -6,11 +6,12 @@ import type {
 	Todo,
 	CreateTodo,
 	UpdateTodo,
+	TodoResponse,
 } from '../domain/todo/todo.schema.js';
 
 export function createTodoRepository(app: FastifyInstance) {
 	return {
-		async create(data: CreateTodo, userId: string): Promise<Todo> {
+		async create(data: CreateTodo, userId: string): Promise<TodoResponse> {
 			const id = uuidv7();
 			const [result] = await app.db
 				.insert(todos)
@@ -23,9 +24,9 @@ export function createTodoRepository(app: FastifyInstance) {
 				})
 				.returning();
 
+			// Return without user_id (security: never expose to client)
 			return {
 				id: result.id,
-				user_id: result.userId,
 				title: result.title,
 				description: result.description,
 				completed: result.completed,
@@ -34,7 +35,7 @@ export function createTodoRepository(app: FastifyInstance) {
 			};
 		},
 
-		async getById(id: string, userId: string): Promise<Todo | null> {
+		async getById(id: string, userId: string): Promise<TodoResponse | null> {
 			const [result] = await app.db
 				.select()
 				.from(todos)
@@ -42,9 +43,9 @@ export function createTodoRepository(app: FastifyInstance) {
 				.limit(1);
 
 			if (!result) return null;
+			// Return without user_id (security: never expose to client)
 			return {
 				id: result.id,
-				user_id: result.userId,
 				title: result.title,
 				description: result.description,
 				completed: result.completed,
@@ -53,16 +54,16 @@ export function createTodoRepository(app: FastifyInstance) {
 			};
 		},
 
-		async getAll(userId: string): Promise<Todo[]> {
+		async getAll(userId: string): Promise<TodoResponse[]> {
 			const result = await app.db
 				.select()
 				.from(todos)
 				.where(eq(todos.userId, userId))
 				.orderBy(desc(todos.createdAt));
 
+			// Return without user_id (security: never expose to client)
 			return result.map((row) => ({
 				id: row.id,
-				user_id: row.userId,
 				title: row.title,
 				description: row.description,
 				completed: row.completed,
@@ -75,7 +76,7 @@ export function createTodoRepository(app: FastifyInstance) {
 			id: string,
 			data: UpdateTodo,
 			userId: string
-		): Promise<Todo | null> {
+		): Promise<TodoResponse | null> {
 			const updateData: Partial<typeof todos.$inferInsert> = {};
 			if (data.title !== undefined) updateData.title = data.title;
 			if (data.description !== undefined)
@@ -90,9 +91,9 @@ export function createTodoRepository(app: FastifyInstance) {
 				.returning();
 
 			if (!result) return null;
+			// Return without user_id (security: never expose to client)
 			return {
 				id: result.id,
-				user_id: result.userId,
 				title: result.title,
 				description: result.description,
 				completed: result.completed,
