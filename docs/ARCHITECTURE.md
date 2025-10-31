@@ -8,7 +8,10 @@ This template follows Fastify's plugin architecture to keep concerns isolated an
 - `src/env.ts` loads and validates environment variables using Zod.
 - `src/plugins/db.ts` decorates the app with a PostgreSQL `Pool`.
 - `src/plugins/jwt.ts` registers `@fastify/jwt`, adds an `authenticate` guard, and token helpers.
-- `src/routes/*` defines feature routes (e.g., `health`, `auth`).
+- `src/routes/*` defines feature routes (e.g., `health`, `auth`). Routes are thin: they bind HTTP to controllers.
+- `src/controllers/*` expose handlers; they orchestrate services and shape HTTP responses.
+- `src/services/*` contain business logic; they call repositories and utilities.
+- `src/repositories/*` encapsulate data access; they use `app.db`.
 - `src/types/fastify.d.ts` augments Fastify types for new decorators and `request.user`.
 
 ## Request flow
