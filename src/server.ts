@@ -14,6 +14,8 @@ import { setupAuthMiddleware } from './middlewares/auth.middleware.js';
 import { setupRateLimit } from './middlewares/rateLimit.middleware.js';
 import { setupRequestIdMiddleware } from './middlewares/requestId.middleware.js';
 import { setupQueryMonitoring } from './utils/queryMonitor.js';
+import { setupSecurityHeaders } from './middlewares/securityHeaders.middleware.js';
+import { setupCSRFProtection } from './middlewares/csrf.middleware.js';
 
 export async function buildServer() {
 	const app = Fastify({
@@ -35,11 +37,17 @@ export async function buildServer() {
 	// Setup global error handler first
 	setupErrorHandler(app);
 
+	// Setup security headers (early in the middleware chain)
+	setupSecurityHeaders(app);
+
 	// Setup request ID middleware for correlation tracking
 	setupRequestIdMiddleware(app);
 
 	// Setup auth middleware to extract userId automatically
 	setupAuthMiddleware(app);
+
+	// Setup CSRF protection (for state-changing requests)
+	setupCSRFProtection(app);
 
 	// Setup rate limiting (before routes)
 	await setupRateLimit(app);

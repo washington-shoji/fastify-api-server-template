@@ -390,13 +390,54 @@ src/
   - Password comparison utilities for secure authentication
   - Automatic token issuance on registration/login
 
+### Additional Security Features ✅ **IMPLEMENTED**
+
+- ✅ **Security headers middleware** - Helmet-like functionality (`src/middlewares/securityHeaders.middleware.ts`)
+
+  - Content Security Policy (CSP) - XSS protection
+  - X-Content-Type-Options - prevents MIME type sniffing
+  - X-Frame-Options - prevents clickjacking
+  - X-XSS-Protection - legacy XSS protection
+  - Referrer-Policy - controls referrer information
+  - Permissions-Policy - restricts browser features
+  - Strict-Transport-Security (HSTS) - force HTTPS in production
+  - Removes X-Powered-By header
+
+- ✅ **CSRF protection** - Double Submit Cookie pattern (`src/middlewares/csrf.middleware.ts`)
+
+  - Protects state-changing operations (POST, PUT, DELETE, PATCH)
+  - Uses Double Submit Cookie pattern (CSRF token in both cookie and header)
+  - Configurable via `ENABLE_CSRF` environment variable
+  - Excludes safe methods (GET, HEAD, OPTIONS) and health/docs endpoints
+  - Constant-time comparison to prevent timing attacks
+
+- ✅ **Audit logging** - Security event logging (`src/utils/auditLogger.ts`)
+
+  - Comprehensive audit log utility for security events
+  - Logs authentication events (login, logout, registration, token refresh)
+  - Logs authorization failures (unauthorized access, CSRF violations)
+  - Logs API key usage
+  - Includes request context (IP, user agent, request ID, resource, action)
+  - Structured JSON format for log aggregation
+  - Integrated into authentication controllers
+
+- ✅ **API key authentication** - Alternative to JWT (`src/plugins/apiKey.ts`, `src/repositories/apiKeyRepository.ts`)
+  - API key plugin for programmatic access
+  - Secure API key storage with bcrypt hashing
+  - API key management (create, list, deactivate, delete)
+  - Usage tracking (last used timestamp)
+  - Optional expiration dates
+  - Audit logging for API key usage
+  - Note: Current implementation validates by comparing against all active keys
+  - For production at scale, consider using a lookup table or Redis for faster validation
+
 ### Future ⏳ **POTENTIAL ENHANCEMENTS**
 
-- ⏳ Add API key authentication option (Future enhancement)
-- ⏳ Implement OAuth2 support (Future enhancement)
-- ⏳ Add audit logging (Future enhancement)
-- ⏳ Implement CSRF protection (Future enhancement)
-- ⏳ Add security headers middleware (Future enhancement)
+- ⏳ **OAuth2 support** - Social authentication (Google, GitHub, etc.)
+  - Requires external OAuth provider integration
+  - Provider-specific configuration and callbacks
+  - Recommended: Use `@fastify/oauth2` or `passport.js` for OAuth integration
+  - Implementation varies by provider (Google, GitHub, Facebook, etc.)
 
 ---
 
@@ -539,6 +580,8 @@ The codebase is ready for production use. Optional future enhancements include:
 - Email verification
 - Two-factor authentication (2FA)
 - Account lockout after failed login attempts
+- OAuth2 support (social authentication with Google, GitHub, etc.)
 - Unit and E2E test coverage expansion
+- API key lookup optimization (Redis or indexed lookup table)
 
 **Recommended Action:** ✅ **Ready for production deployment** - All critical and high-priority items are complete. The codebase follows best practices, includes complete authentication flow, and is fully scalable with CI/CD-safe testing infrastructure.

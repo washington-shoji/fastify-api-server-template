@@ -3,6 +3,7 @@ import { Pool, type PoolConfig } from 'pg';
 import { env } from '../env.js';
 import * as usersSchema from './schema/users';
 import * as todosSchema from './schema/todos';
+import * as apiKeysSchema from './schema/apiKeys';
 
 // Lazy initialization for database connection
 let poolInstance: Pool | null = null;
@@ -78,6 +79,7 @@ function getDb() {
 			schema: {
 				...usersSchema,
 				...todosSchema,
+				...apiKeysSchema,
 			},
 		});
 	}
@@ -105,7 +107,7 @@ export const db = new Proxy({} as ReturnType<typeof drizzle>, {
 	},
 });
 
-export { usersSchema, todosSchema };
+export { usersSchema, todosSchema, apiKeysSchema };
 
 /**
  * Reset database connections (useful for tests)

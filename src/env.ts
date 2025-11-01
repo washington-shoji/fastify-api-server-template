@@ -61,6 +61,23 @@ const envSchema = z.object({
 		.union([z.literal('true'), z.literal('false')])
 		.optional()
 		.transform((val) => val === 'true'),
+	// Security configuration
+	ENABLE_CSRF: z
+		.union([z.literal('true'), z.literal('false')])
+		.optional()
+		.transform((val) => val === 'true')
+		.default('true'),
+	ENABLE_API_KEY_AUTH: z
+		.union([z.literal('true'), z.literal('false')])
+		.optional()
+		.transform((val) => val === 'true')
+		.default('false'),
+	// Swagger/OpenAPI configuration
+	ENABLE_SWAGGER: z
+		.union([z.literal('true'), z.literal('false')])
+		.optional()
+		.transform((val) => val === 'true')
+		.default('false'),
 });
 
 const parsed = envSchema.safeParse(process.env);
