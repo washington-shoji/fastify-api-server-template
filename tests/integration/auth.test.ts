@@ -13,7 +13,7 @@ describe('Authentication Endpoints', () => {
 		app = await buildServer();
 		// Create a test user
 		testUserId = uuidv7();
-		await app.db.insert(users).values({
+		await (app as any).db.insert(users).values({
 			id: testUserId,
 			userName: `test_user_${Date.now()}`,
 			email: `test_${Date.now()}@example.com`,
@@ -24,7 +24,7 @@ describe('Authentication Endpoints', () => {
 	afterAll(async () => {
 		// Clean up test user
 		if (testUserId && app) {
-			await app.db.delete(users).where(eq(users.id, testUserId));
+			await (app as any).db.delete(users).where(eq(users.id, testUserId));
 		}
 		if (app) {
 			await app.close();
