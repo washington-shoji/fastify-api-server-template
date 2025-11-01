@@ -78,9 +78,10 @@ describe('Authentication Endpoints', () => {
 
 			// Check cookies are set
 			const cookies = response.cookies;
-			expect(cookies).toHaveLength(2);
-			expect(cookies.some((c) => c.name === 'access_token')).toBe(true);
-			expect(cookies.some((c) => c.name === 'refresh_token')).toBe(true);
+			expect(cookies).toHaveLength(3); // access_token, refresh_token, csrf_token
+			expect(cookies.some(c => c.name === 'access_token')).toBe(true);
+			expect(cookies.some(c => c.name === 'refresh_token')).toBe(true);
+			expect(cookies.some(c => c.name === 'csrf_token')).toBe(true);
 		});
 
 		it('should return 400 for invalid registration data', async () => {
@@ -148,9 +149,10 @@ describe('Authentication Endpoints', () => {
 
 			// Check cookies are set
 			const cookies = response.cookies;
-			expect(cookies).toHaveLength(2);
-			expect(cookies.some((c) => c.name === 'access_token')).toBe(true);
-			expect(cookies.some((c) => c.name === 'refresh_token')).toBe(true);
+			expect(cookies).toHaveLength(3); // access_token, refresh_token, csrf_token
+			expect(cookies.some(c => c.name === 'access_token')).toBe(true);
+			expect(cookies.some(c => c.name === 'refresh_token')).toBe(true);
+			expect(cookies.some(c => c.name === 'csrf_token')).toBe(true);
 		});
 
 		it('should login with username successfully', async () => {
@@ -226,10 +228,8 @@ describe('Authentication Endpoints', () => {
 
 			// Check cookies are cleared
 			const cookies = response.cookies;
-			const accessTokenCookie = cookies.find((c) => c.name === 'access_token');
-			const refreshTokenCookie = cookies.find(
-				(c) => c.name === 'refresh_token'
-			);
+			const accessTokenCookie = cookies.find(c => c.name === 'access_token');
+			const refreshTokenCookie = cookies.find(c => c.name === 'refresh_token');
 			expect(accessTokenCookie?.value).toBe('');
 			expect(refreshTokenCookie?.value).toBe('');
 		});

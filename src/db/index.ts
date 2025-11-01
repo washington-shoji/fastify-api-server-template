@@ -34,7 +34,7 @@ function getPool(): Pool {
 		poolInstance = new Pool(poolConfig);
 
 		// Handle pool errors
-		poolInstance.on('error', (err) => {
+		poolInstance.on('error', err => {
 			// Suppress connection termination errors during test cleanup
 			// These are expected when test containers shut down
 			const isConnectionTerminationError =

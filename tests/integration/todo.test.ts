@@ -87,7 +87,7 @@ describe('Todo Endpoints', () => {
 
 	it('should get all todos for authenticated user', async () => {
 		// Create a few todos
-		const todo1 = await testDb
+		await testDb
 			.insert(todos)
 			.values({
 				id: uuidv7(),
@@ -98,7 +98,7 @@ describe('Todo Endpoints', () => {
 			})
 			.returning();
 
-		const todo2 = await testDb
+		await testDb
 			.insert(todos)
 			.values({
 				id: uuidv7(),

@@ -32,7 +32,7 @@ export const apiKeys = pgTable(
 			.notNull()
 			.defaultNow(),
 	},
-	(table) => ({
+	table => ({
 		userIdIdx: index('idx_template_api_api_keys_user_id').on(table.userId),
 		keyHashIdx: index('idx_template_api_api_keys_key_hash').on(table.keyHash),
 		isActiveIdx: index('idx_template_api_api_keys_is_active').on(

@@ -1,9 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { uuidv7 } from 'uuidv7';
-import { eq, and, desc, lt, gt } from 'drizzle-orm';
+import { eq, and, desc, lt } from 'drizzle-orm';
 import { todos } from '../db/schema/todos';
 import type {
-	Todo,
 	CreateTodo,
 	UpdateTodo,
 	TodoResponse,
@@ -97,7 +96,7 @@ export function createTodoRepository(app: FastifyInstance) {
 			const nextCursor = hasMore ? items[items.length - 1]?.id : undefined;
 
 			// Return without user_id (security: never expose to client)
-			const mappedItems: TodoResponse[] = items.map((row) => ({
+			const mappedItems: TodoResponse[] = items.map(row => ({
 				id: row.id,
 				title: row.title,
 				description: row.description,

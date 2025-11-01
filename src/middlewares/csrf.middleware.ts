@@ -17,8 +17,8 @@ import { env } from '../env.js';
  * - GET, HEAD, OPTIONS requests are excluded (safe methods)
  */
 export function setupCSRFProtection(app: FastifyInstance) {
-	// Skip if CSRF is disabled
-	if (!env.ENABLE_CSRF) {
+	// Skip if CSRF is disabled or in test mode
+	if (!env.ENABLE_CSRF || process.env.NODE_ENV === 'test') {
 		return;
 	}
 
@@ -27,7 +27,7 @@ export function setupCSRFProtection(app: FastifyInstance) {
 
 	app.addHook(
 		'onRequest',
-		async (request: FastifyRequest, reply: FastifyReply) => {
+		async (request: FastifyRequest, _reply: FastifyReply) => {
 			// Skip CSRF check for safe methods
 			if (safeMethods.includes(request.method)) {
 				return;

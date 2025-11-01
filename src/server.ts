@@ -25,7 +25,7 @@ export async function buildServer() {
 			level: process.env.LOG_LEVEL || 'info',
 			// Add request ID to logs
 			serializers: {
-				req: (req) => {
+				req: req => {
 					return {
 						method: req.method,
 						url: req.url,
@@ -168,7 +168,7 @@ if (!isTestMode) {
 	process.on('SIGINT', () => shutdown('SIGINT'));
 
 	// Handle uncaught exceptions
-	process.on('uncaughtException', (error) => {
+	process.on('uncaughtException', error => {
 		console.error('Uncaught Exception:', error);
 		shutdown('uncaughtException');
 	});

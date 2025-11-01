@@ -1,4 +1,4 @@
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyReply } from 'fastify';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 declare module 'fastify' {

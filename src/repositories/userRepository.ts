@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { uuidv7 } from 'uuidv7';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { users } from '../db/schema/users';
 import type {
 	User,

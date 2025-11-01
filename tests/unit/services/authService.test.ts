@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { createAuthService } from '../../../src/services/authService.js';
 import { NotFoundError, UnauthorizedError } from '../../../src/utils/errors.js';
-import type { User } from '../../../src/domain/user/user.schema.js';
+import type { User, CreateUser } from '../../../src/domain/user/user.schema.js';
 import { uuidv7 } from 'uuidv7';
 
 describe('AuthService', () => {
@@ -13,6 +13,9 @@ describe('AuthService', () => {
 	};
 	let mockDeps: {
 		getUserById: Mock;
+		getUserByEmail: Mock;
+		getUserByUserName: Mock;
+		createUser: Mock;
 	};
 	let authService: ReturnType<typeof createAuthService>;
 	let testUserId: string;
@@ -29,6 +32,9 @@ describe('AuthService', () => {
 
 		mockDeps = {
 			getUserById: vi.fn(),
+			getUserByEmail: vi.fn(),
+			getUserByUserName: vi.fn(),
+			createUser: vi.fn(),
 		};
 
 		// Mock FastifyInstance with JWT methods
@@ -44,7 +50,12 @@ describe('AuthService', () => {
 
 		authService = createAuthService(
 			mockApp,
-			mockDeps as { getUserById: (userId: string) => Promise<User | null> }
+			mockDeps as {
+				getUserById: (userId: string) => Promise<User | null>;
+				getUserByEmail: (email: string) => Promise<User | null>;
+				getUserByUserName: (userName: string) => Promise<User | null>;
+				createUser: (data: CreateUser) => Promise<User>;
+			}
 		);
 	});
 

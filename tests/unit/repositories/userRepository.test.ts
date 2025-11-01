@@ -127,7 +127,7 @@ describe('UserRepository', () => {
 			const result1 = await repository.getByEmail('Test@Example.com');
 			expect(result1).not.toBeNull();
 
-			const result2 = await repository.getByEmail('test@example.com');
+			const _result2 = await repository.getByEmail('test@example.com');
 			// Should return null if email case doesn't match (depends on DB collation)
 			// This test might need adjustment based on actual database behavior
 		});

@@ -50,8 +50,8 @@ export function setupErrorHandler(app: FastifyInstance) {
 				const validationErrors = Array.isArray(validationError.validation)
 					? validationError.validation
 					: validationError.validation
-					? [validationError.validation]
-					: [];
+						? [validationError.validation]
+						: [];
 
 				return reply.code(400).send({
 					message:
@@ -82,7 +82,7 @@ export function setupErrorHandler(app: FastifyInstance) {
 				};
 				return reply.code(400).send({
 					message: 'Validation failed',
-					errors: zodError.issues.map((issue) => ({
+					errors: zodError.issues.map(issue => ({
 						path: issue.path,
 						message: issue.message,
 					})),

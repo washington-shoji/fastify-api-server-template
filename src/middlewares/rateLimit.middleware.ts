@@ -17,7 +17,7 @@ export async function setupRateLimit(app: FastifyInstance) {
 			};
 		},
 		// Custom key generator - rate limit per IP address
-		keyGenerator: (request) => {
+		keyGenerator: request => {
 			return (
 				(request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
 				request.ip ||

@@ -46,7 +46,7 @@ class QueryMonitor {
 	 */
 	getSlowQueries(): QueryMetric[] {
 		return this.metrics.filter(
-			(metric) => metric.duration > this.slowQueryThreshold && !metric.error
+			metric => metric.duration > this.slowQueryThreshold && !metric.error
 		);
 	}
 
@@ -54,7 +54,7 @@ class QueryMonitor {
 	 * Get failed queries
 	 */
 	getFailedQueries(): QueryMetric[] {
-		return this.metrics.filter((metric) => metric.error !== undefined);
+		return this.metrics.filter(metric => metric.error !== undefined);
 	}
 
 	/**

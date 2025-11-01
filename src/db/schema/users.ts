@@ -14,7 +14,7 @@ export const users = pgTable(
 			.notNull()
 			.defaultNow(),
 	},
-	(table) => ({
+	table => ({
 		emailIdx: index('idx_template_api_users_email').on(table.email),
 		userNameIdx: index('idx_template_api_users_user_name').on(table.userName),
 		createdAtIdx: index('idx_template_api_users_created_at').on(

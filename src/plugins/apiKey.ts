@@ -29,7 +29,7 @@ async function apiKeyPlugin(app: FastifyInstance, opts: APIKeyPluginOptions) {
 	// Decorator for API key authentication
 	app.decorate(
 		'authenticateWithAPIKey',
-		async (request: FastifyRequest, reply: FastifyReply) => {
+		async (request: FastifyRequest, _reply: FastifyReply) => {
 			// Get API key from header or query parameter
 			const apiKeyFromHeader = (request.headers['x-api-key'] as string)?.trim();
 			const apiKeyFromQuery = (request.query as any)?.api_key as

@@ -24,7 +24,7 @@ async function jwtPlugin(app: FastifyInstance) {
 	// We need to manually sign/verify refresh tokens with different secret
 	app.decorate(
 		'authenticate',
-		async (request: FastifyRequest, reply: FastifyReply) => {
+		async (request: FastifyRequest, _reply: FastifyReply) => {
 			try {
 				// jwtVerify automatically reads from Authorization: Bearer <token> header
 				// or from cookies if configured
@@ -61,7 +61,7 @@ async function jwtPlugin(app: FastifyInstance) {
 		// Use jsonwebtoken directly with refresh secret for verification
 		try {
 			return jsonwebtoken.verify(token, env.JWT_REFRESH_SECRET);
-		} catch (err) {
+		} catch {
 			throw new UnauthorizedError('Invalid refresh token');
 		}
 	});

@@ -1,10 +1,6 @@
 import { beforeAll, afterAll } from 'vitest';
 import dotenv from 'dotenv';
-import {
-	startTestDatabase,
-	stopTestDatabase,
-	getTestDbUrl,
-} from './helpers/testDb.js';
+import { startTestDatabase, stopTestDatabase } from './helpers/testDb.js';
 import { closeDatabaseConnections } from '../src/db/index.js';
 
 // Load test environment variables
@@ -43,7 +39,7 @@ function isConnectionTerminationError(error: unknown): boolean {
 // Suppress connection termination errors during test cleanup
 // These are expected when the container shuts down while connections are closing
 // This prevents CI/CD pipelines from failing due to expected cleanup errors
-process.on('unhandledRejection', (error) => {
+process.on('unhandledRejection', error => {
 	// Suppress connection termination errors during cleanup
 	if (isConnectionTerminationError(error)) {
 		// Silently ignore these expected cleanup errors
@@ -54,7 +50,7 @@ process.on('unhandledRejection', (error) => {
 });
 
 // Also handle uncaught exceptions (pg errors can come through here synchronously)
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', error => {
 	// Suppress connection termination errors during cleanup
 	if (isConnectionTerminationError(error)) {
 		// Silently ignore these expected cleanup errors
@@ -88,7 +84,7 @@ afterAll(async () => {
 		await closeDatabaseConnections();
 
 		// Small delay to ensure all connections are fully closed
-		await new Promise((resolve) => setTimeout(resolve, 100));
+		await new Promise(resolve => setTimeout(resolve, 100));
 
 		console.log('Database connections closed successfully');
 	} catch (error) {

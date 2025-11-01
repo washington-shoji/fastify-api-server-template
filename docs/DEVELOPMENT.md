@@ -105,7 +105,6 @@
 ### Performance Configuration
 
 - `ENABLE_COMPRESSION=true` - Enable response compression (default: true)
-
   - Automatically compresses responses using gzip or deflate
   - Only compresses responses larger than 1KB
   - Reduces bandwidth usage and improves response times
@@ -125,7 +124,6 @@
 ### Schema Changes
 
 1. **Edit schema files** in `src/db/schema/`:
-
    - `users.ts` - User table schema
    - `todos.ts` - Todo table schema
 
@@ -410,7 +408,7 @@ export const features = pgTable(
 			.notNull()
 			.defaultNow(),
 	},
-	(table) => ({
+	table => ({
 		userIdIdx: index('idx_template_api_features_user_id').on(table.userId),
 	})
 );
@@ -883,6 +881,50 @@ Interactive API documentation is available at `/docs` endpoint:
 - Enabled automatically in development/test
 - Set `ENABLE_SWAGGER=true` to enable in production
 
+## Code Quality Tools
+
+### ESLint
+
+The template includes ESLint configuration for code quality:
+
+```bash
+# Check for linting issues
+npm run lint
+
+# Auto-fix linting issues
+npm run lint:fix
+```
+
+**Configuration:**
+
+- ESLint 9 with flat config format
+- TypeScript support with `@typescript-eslint`
+- Node.js globals (process, console, Buffer, etc.)
+- Prettier integration for consistent formatting
+- Configured rules for unused variables, no-explicit-any warnings, etc.
+
+### Prettier
+
+Code formatting is handled by Prettier:
+
+```bash
+# Format all files
+npm run format
+
+# Check if files are formatted
+npm run format:check
+```
+
+**Configuration:**
+
+- Single quotes
+- Tabs for indentation
+- 80 character line width
+- Trailing commas (ES5)
+- Semicolons enabled
+
+**Note:** ESLint and Prettier are configured to work together without conflicts.
+
 ## Best Practices
 
 1. **Always use transactions** for multi-step operations
@@ -898,3 +940,5 @@ Interactive API documentation is available at `/docs` endpoint:
 11. **Use caching** for frequently accessed data
 12. **Transform data via DTOs** for clear API contracts
 13. **Document endpoints** with Swagger schemas
+14. **Run linter before committing** code (`npm run lint`)
+15. **Format code** before committing (`npm run format`)

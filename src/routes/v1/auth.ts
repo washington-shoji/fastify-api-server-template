@@ -19,10 +19,10 @@ import {
 export async function authV1Routes(app: FastifyInstance) {
 	const repo = createUserRepository(app);
 	const service = createAuthService(app, {
-		getUserById: (id) => repo.getById(id),
-		getUserByEmail: (email) => repo.getByEmail(email),
-		getUserByUserName: (userName) => repo.getByUserName(userName),
-		createUser: (data) => repo.create(data),
+		getUserById: id => repo.getById(id),
+		getUserByEmail: email => repo.getByEmail(email),
+		getUserByUserName: userName => repo.getByUserName(userName),
+		createUser: data => repo.create(data),
 	});
 	const controller = createAuthController(app, service);
 

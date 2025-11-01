@@ -11,7 +11,7 @@ export function setupAuthMiddleware(app: FastifyInstance) {
 	// This ensures request.user is set by jwtVerify before we extract userId
 	app.addHook(
 		'preHandler',
-		async (request: FastifyRequest, reply: FastifyReply) => {
+		async (request: FastifyRequest, _reply: FastifyReply) => {
 			// Only process authenticated requests (request.user is set by jwtVerify)
 			if (request.user) {
 				const userId = (request.user as { sub?: string })?.sub;
@@ -30,7 +30,7 @@ export function setupAuthMiddleware(app: FastifyInstance) {
  */
 export async function requireAuth(
 	request: FastifyRequest,
-	reply: FastifyReply
+	_reply: FastifyReply
 ): Promise<void> {
 	const userId = (request as any).userId;
 	if (!userId) {

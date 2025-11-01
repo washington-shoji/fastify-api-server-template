@@ -1,6 +1,5 @@
 import type { FastifyDynamicSwaggerOptions } from '@fastify/swagger';
 import type { FastifySwaggerUiOptions } from '@fastify/swagger-ui';
-import { env } from '../env.js';
 
 export const swaggerOptions: FastifyDynamicSwaggerOptions = {
 	mode: 'dynamic' as const,
@@ -74,8 +73,8 @@ export const swaggerUiOptions: FastifySwaggerUiOptions = {
 		},
 	},
 	staticCSP: true,
-	transformStaticCSP: (header) => header,
-	transformSpecification: (swaggerObject, req, reply) => {
+	transformStaticCSP: header => header,
+	transformSpecification: (swaggerObject, _req, _reply) => {
 		return swaggerObject;
 	},
 	transformSpecificationClone: true,

@@ -26,7 +26,7 @@ export const todos = pgTable(
 			.notNull()
 			.defaultNow(),
 	},
-	(table) => ({
+	table => ({
 		createdAtIdx: index('idx_template_api_todos_created_at').on(
 			table.createdAt
 		),

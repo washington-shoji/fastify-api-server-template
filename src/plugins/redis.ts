@@ -7,7 +7,7 @@ export interface RedisPluginOptions extends FastifyPluginOptions {
 	enabled?: boolean;
 }
 
-async function redisPlugin(app: FastifyInstance, opts: RedisPluginOptions) {
+async function redisPlugin(app: FastifyInstance, _opts: RedisPluginOptions) {
 	// Check if Redis is enabled (optional)
 	if (!env.REDIS_URL && !env.REDIS_HOST) {
 		app.log.warn('Redis not configured - caching disabled');
@@ -53,7 +53,7 @@ async function redisPlugin(app: FastifyInstance, opts: RedisPluginOptions) {
 		if (env.REDIS_URL) {
 			redisClient = new Redis(env.REDIS_URL, {
 				maxRetriesPerRequest: 3,
-				retryStrategy: (times) => {
+				retryStrategy: times => {
 					const delay = Math.min(times * 50, 2000);
 					return delay;
 				},
@@ -64,7 +64,7 @@ async function redisPlugin(app: FastifyInstance, opts: RedisPluginOptions) {
 				port: env.REDIS_PORT || 6379,
 				password: env.REDIS_PASSWORD,
 				maxRetriesPerRequest: 3,
-				retryStrategy: (times) => {
+				retryStrategy: times => {
 					const delay = Math.min(times * 50, 2000);
 					return delay;
 				},
@@ -76,7 +76,7 @@ async function redisPlugin(app: FastifyInstance, opts: RedisPluginOptions) {
 		app.log.info('Redis connected successfully');
 
 		// Handle Redis errors
-		redisClient.on('error', (error) => {
+		redisClient.on('error', error => {
 			app.log.error({ err: error }, 'Redis connection error');
 		});
 
@@ -149,10 +149,10 @@ async function redisPlugin(app: FastifyInstance, opts: RedisPluginOptions) {
 						match: pattern,
 					});
 					const keys: string[] = [];
-					stream.on('data', (resultKeys) => {
+					stream.on('data', resultKeys => {
 						keys.push(...resultKeys);
 					});
-					await new Promise((resolve) => {
+					await new Promise(resolve => {
 						stream.on('end', resolve);
 					});
 					if (keys.length > 0) {

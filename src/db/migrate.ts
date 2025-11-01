@@ -21,7 +21,7 @@ export async function migrate(connectionString?: string): Promise<void> {
 
 // CLI entry point (when run directly)
 async function runMigrations() {
-	await migrate().catch((err) => {
+	await migrate().catch(err => {
 		console.error('Migration failed:', err);
 		process.exit(1);
 	});

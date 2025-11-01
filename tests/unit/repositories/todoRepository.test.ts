@@ -3,7 +3,6 @@ import { buildServer } from '../../../src/server.js';
 import type { FastifyInstance } from 'fastify';
 import { createTodoRepository } from '../../../src/repositories/todoRepository.js';
 import { cleanTestDatabase, createTestDb } from '../../helpers/testDb.js';
-import { todos } from '../../../src/db/schema/todos.js';
 import { users } from '../../../src/db/schema/users.js';
 import { uuidv7 } from 'uuidv7';
 import type {
@@ -200,7 +199,7 @@ describe('TodoRepository', () => {
 
 			expect(result.items).toHaveLength(3);
 			// Todos are returned in descending order (newest first) by default
-			expect(result.items.map((t) => t.title)).toEqual([
+			expect(result.items.map(t => t.title)).toEqual([
 				'Todo 3',
 				'Todo 2',
 				'Todo 1',
@@ -389,7 +388,7 @@ describe('TodoRepository', () => {
 				testUserId
 			);
 
-			const cacheKey = `todo:${testUserId}:${created.id}`;
+			const _cacheKey = `todo:${testUserId}:${created.id}`;
 
 			// Get todo to populate cache
 			await repository.getById(created.id, testUserId);

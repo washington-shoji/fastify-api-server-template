@@ -30,10 +30,10 @@ export function registerServices(app: FastifyInstance): void {
 					'userRepository'
 				);
 			return createAuthService(app, {
-				getUserById: (id) => repo.getById(id),
-				getUserByEmail: (email) => repo.getByEmail(email),
-				getUserByUserName: (userName) => repo.getByUserName(userName),
-				createUser: (data) => repo.create(data),
+				getUserById: id => repo.getById(id),
+				getUserByEmail: email => repo.getByEmail(email),
+				getUserByUserName: userName => repo.getByUserName(userName),
+				createUser: data => repo.create(data),
 			});
 		},
 		true

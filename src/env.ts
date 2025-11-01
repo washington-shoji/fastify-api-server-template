@@ -23,16 +23,16 @@ const envSchema = z.object({
 	DB_POOL_MIN: z
 		.string()
 		.optional()
-		.transform((val) => (val ? Number(val) : undefined)),
+		.transform(val => (val ? Number(val) : undefined)),
 	DB_POOL_MAX: z
 		.string()
 		.optional()
-		.transform((val) => (val ? Number(val) : undefined)),
+		.transform(val => (val ? Number(val) : undefined)),
 	// Rate limiting configuration
 	RATE_LIMIT_MAX: z
 		.string()
 		.optional()
-		.transform((val) => (val ? Number(val) : undefined)),
+		.transform(val => (val ? Number(val) : undefined)),
 	RATE_LIMIT_TIME_WINDOW: z.string().optional(),
 	// Logging configuration
 	LOG_LEVEL: z
@@ -42,52 +42,57 @@ const envSchema = z.object({
 	SLOW_QUERY_THRESHOLD: z
 		.string()
 		.optional()
-		.transform((val) => (val ? Number(val) : undefined)),
+		.transform(val => (val ? Number(val) : undefined)),
 	// Redis configuration (optional, for caching)
-	REDIS_URL: z.string().url().optional(),
+	REDIS_URL: z
+		.string()
+		.optional()
+		.refine(val => !val || z.string().url().safeParse(val).success, {
+			message: 'Invalid url',
+		}),
 	REDIS_HOST: z.string().optional(),
 	REDIS_PORT: z
 		.string()
 		.optional()
-		.transform((val) => (val ? Number(val) : undefined)),
+		.transform(val => (val ? Number(val) : undefined)),
 	REDIS_PASSWORD: z.string().optional(),
 	REDIS_TTL: z
 		.string()
 		.optional()
-		.transform((val) => (val ? Number(val) : undefined)),
+		.transform(val => (val ? Number(val) : undefined)),
 	// Server configuration
 	HOST: z.string().optional(),
 	TRUST_PROXY: z
 		.union([z.literal('true'), z.literal('false')])
 		.optional()
-		.transform((val) => val === 'true'),
+		.transform(val => val === 'true'),
 	// Security configuration
 	ENABLE_CSRF: z
 		.union([z.literal('true'), z.literal('false')])
 		.optional()
-		.transform((val) => val === 'true')
+		.transform(val => val === 'true')
 		.default('true'),
 	ENABLE_API_KEY_AUTH: z
 		.union([z.literal('true'), z.literal('false')])
 		.optional()
-		.transform((val) => val === 'true')
+		.transform(val => val === 'true')
 		.default('false'),
 	// Swagger/OpenAPI configuration
 	ENABLE_SWAGGER: z
 		.union([z.literal('true'), z.literal('false')])
 		.optional()
-		.transform((val) => val === 'true')
+		.transform(val => val === 'true')
 		.default('false'),
 	// Performance configuration
 	ENABLE_COMPRESSION: z
 		.union([z.literal('true'), z.literal('false')])
 		.optional()
-		.transform((val) => val === 'true')
+		.transform(val => val === 'true')
 		.default('true'),
 	ENABLE_ETAG: z
 		.union([z.literal('true'), z.literal('false')])
 		.optional()
-		.transform((val) => val === 'true')
+		.transform(val => val === 'true')
 		.default('true'),
 });
 
@@ -106,10 +111,10 @@ export const env = {
 	PORT_NUMBER: Number(parsed.data.PORT),
 	// Parse CORS origins - if not provided, use defaults based on environment
 	CORS_ORIGINS: parsed.data.CORS_ORIGIN
-		? parsed.data.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+		? parsed.data.CORS_ORIGIN.split(',').map(origin => origin.trim())
 		: parsed.data.NODE_ENV === 'production'
-		? [] // Production requires explicit origins
-		: true, // Development allows all origins
+			? [] // Production requires explicit origins
+			: true, // Development allows all origins
 	// Server host configuration
 	HOST: parsed.data.HOST || '0.0.0.0',
 };

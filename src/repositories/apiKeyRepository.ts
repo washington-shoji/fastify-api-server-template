@@ -116,14 +116,14 @@ export function createAPIKeyRepository(app: FastifyInstance) {
 				.where(eq(apiKeys.isActive, true));
 
 			return results
-				.filter((result) => {
+				.filter(result => {
 					// Check expiration
 					if (result.expiresAt && result.expiresAt < new Date()) {
 						return false; // Expired
 					}
 					return true;
 				})
-				.map((result) => ({
+				.map(result => ({
 					id: result.id,
 					userId: result.userId,
 					keyHash: result.keyHash,
@@ -147,14 +147,14 @@ export function createAPIKeyRepository(app: FastifyInstance) {
 				.where(and(eq(apiKeys.userId, userId), eq(apiKeys.isActive, true)));
 
 			return results
-				.filter((result) => {
+				.filter(result => {
 					// Check expiration
 					if (result.expiresAt && result.expiresAt < new Date()) {
 						return false; // Expired
 					}
 					return true;
 				})
-				.map((result) => ({
+				.map(result => ({
 					id: result.id,
 					userId: result.userId,
 					keyHash: result.keyHash,
@@ -187,7 +187,7 @@ export function createAPIKeyRepository(app: FastifyInstance) {
 				.from(apiKeys)
 				.where(eq(apiKeys.userId, userId));
 
-			return results.map((row) => ({
+			return results.map(row => ({
 				id: row.id,
 				userId: row.userId,
 				name: row.name,

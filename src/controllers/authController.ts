@@ -26,7 +26,7 @@ export function createAuthController(
 		reply: FastifyReply,
 		accessToken: string,
 		refreshToken: string,
-		request?: FastifyRequest
+		_request?: FastifyRequest
 	) => {
 		const commonCookie = {
 			httpOnly: true,
@@ -106,9 +106,8 @@ export function createAuthController(
 				password: parsed.data.password,
 			});
 
-			const { accessToken, refreshToken, user } = await authService.register(
-				data
-			);
+			const { accessToken, refreshToken, user } =
+				await authService.register(data);
 
 			setAuthCookies(reply, accessToken, refreshToken, request);
 
@@ -279,9 +278,8 @@ export function createAuthController(
 			return reply.code(401).send({ message: 'Missing refresh token' });
 		}
 
-		const { accessToken, refreshToken, user } = await authService.refreshTokens(
-			token
-		);
+		const { accessToken, refreshToken, user } =
+			await authService.refreshTokens(token);
 
 		setAuthCookies(reply, accessToken, refreshToken, request);
 
