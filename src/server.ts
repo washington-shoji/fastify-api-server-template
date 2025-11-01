@@ -63,8 +63,16 @@ export async function buildServer() {
 	await app.register(dbPlugin);
 	await app.register(jwtPlugin);
 	await app.register(healthRoutes);
+
+	// Legacy routes (backward compatibility - can be removed in future)
 	await app.register(authRoutes);
 	await app.register(todoRoutes);
+
+	// Version 1 API routes
+	const { authV1Routes } = await import('./routes/v1/auth.js');
+	const { todoV1Routes } = await import('./routes/v1/todo.js');
+	await app.register(authV1Routes);
+	await app.register(todoV1Routes);
 
 	return app;
 }
