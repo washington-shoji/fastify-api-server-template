@@ -43,6 +43,24 @@ const envSchema = z.object({
 		.string()
 		.optional()
 		.transform((val) => (val ? Number(val) : undefined)),
+	// Redis configuration (optional, for caching)
+	REDIS_URL: z.string().url().optional(),
+	REDIS_HOST: z.string().optional(),
+	REDIS_PORT: z
+		.string()
+		.optional()
+		.transform((val) => (val ? Number(val) : undefined)),
+	REDIS_PASSWORD: z.string().optional(),
+	REDIS_TTL: z
+		.string()
+		.optional()
+		.transform((val) => (val ? Number(val) : undefined)),
+	// Server configuration
+	HOST: z.string().optional(),
+	TRUST_PROXY: z
+		.union([z.literal('true'), z.literal('false')])
+		.optional()
+		.transform((val) => val === 'true'),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -64,4 +82,6 @@ export const env = {
 		: parsed.data.NODE_ENV === 'production'
 		? [] // Production requires explicit origins
 		: true, // Development allows all origins
+	// Server host configuration
+	HOST: parsed.data.HOST || '0.0.0.0',
 };

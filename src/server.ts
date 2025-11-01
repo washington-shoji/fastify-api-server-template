@@ -72,7 +72,7 @@ export async function buildServer() {
 async function start() {
 	const app = await buildServer();
 	try {
-		await app.listen({ port: env.PORT_NUMBER, host: '0.0.0.0' });
+		await app.listen({ port: env.PORT_NUMBER, host: env.HOST });
 		app.log.info(`Server listening on port ${env.PORT_NUMBER}`);
 	} catch (err) {
 		app.log.error(err);
