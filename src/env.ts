@@ -38,6 +38,11 @@ const envSchema = z.object({
 	LOG_LEVEL: z
 		.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
 		.optional(),
+	// Query monitoring configuration
+	SLOW_QUERY_THRESHOLD: z
+		.string()
+		.optional()
+		.transform((val) => (val ? Number(val) : undefined)),
 });
 
 const parsed = envSchema.safeParse(process.env);

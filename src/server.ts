@@ -11,6 +11,7 @@ import { setupErrorHandler } from './utils/errorHandler.js';
 import { setupAuthMiddleware } from './middlewares/auth.middleware.js';
 import { setupRateLimit } from './middlewares/rateLimit.middleware.js';
 import { setupRequestIdMiddleware } from './middlewares/requestId.middleware.js';
+import { setupQueryMonitoring } from './utils/queryMonitor.js';
 
 async function buildServer() {
 	const app = Fastify({
@@ -40,6 +41,9 @@ async function buildServer() {
 
 	// Setup rate limiting (before routes)
 	await setupRateLimit(app);
+
+	// Setup query monitoring for performance tracking
+	setupQueryMonitoring(app, env.SLOW_QUERY_THRESHOLD ?? 1000);
 
 	// Configure CORS based on environment
 	await app.register(cors, {
