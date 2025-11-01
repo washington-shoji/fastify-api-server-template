@@ -436,15 +436,23 @@ Located in `src/config/swagger.ts` and `src/utils/schemas.ts`:
 Located in `src/plugins/redis.ts`:
 
 - **Redis Plugin**: Comprehensive caching service with connection management
-- **Cache Service**: Provides `get`, `set`, `del`, `delPattern`, `exists`, `flush`, `getOrSet`
+- **Cache Service**: Decorates Fastify instance with `app.cache`
+- **Cache Methods**:
+  - `get<T>(key)` - Get value from cache (returns null if not found)
+  - `set<T>(key, value, ttl?)` - Set value in cache with optional TTL
+  - `del(key)` - Delete a key from cache
+  - `delPattern(pattern)` - Delete multiple keys matching pattern (e.g., `todo:${userId}:*`)
+  - `exists(key)` - Check if key exists in cache
+  - `flush()` - Clear all cache (use with caution!)
+  - `getOrSet<T>(key, fetcher, ttl?)` - Get from cache or execute fetcher and cache result
 - **Automatic Caching**: Uses `getOrSet` pattern for cache-first strategy
 - **Cache Invalidation**: Automatic invalidation on create/update/delete operations
 - **User-Scoped Keys**: Cache keys include `userId` for security (e.g., `todo:${userId}:${id}`)
-- **Graceful Fallback**: No-op cache service when Redis unavailable
+- **Graceful Fallback**: No-op cache service when Redis unavailable (application continues to work)
 - **Configuration**:
   - `REDIS_URL` or `REDIS_HOST`/`REDIS_PORT` for connection
   - `REDIS_PASSWORD` for authentication
-  - `REDIS_TTL` for default cache expiration (default: 3600 seconds)
+  - `REDIS_TTL` for default cache expiration (default: 3600 seconds = 1 hour)
 
 ### Usage Example
 
