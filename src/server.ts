@@ -5,6 +5,7 @@ import { env } from './env.js';
 import { healthRoutes } from './routes/health.js';
 import dbPlugin from './plugins/db.js';
 import jwtPlugin from './plugins/jwt.js';
+import redisPlugin from './plugins/redis.js';
 import { setupErrorHandler } from './utils/errorHandler.js';
 import { setupAuthMiddleware } from './middlewares/auth.middleware.js';
 import { setupRateLimit } from './middlewares/rateLimit.middleware.js';
@@ -60,6 +61,7 @@ export async function buildServer() {
 
 	await app.register(dbPlugin);
 	await app.register(jwtPlugin);
+	await app.register(redisPlugin);
 	await app.register(healthRoutes);
 
 	// Version 1 API routes
@@ -86,13 +88,15 @@ async function start() {
 async function shutdown(signal: string) {
 	console.log(`\n${signal} received. Starting graceful shutdown...`);
 
-	// Import pool to close connections
-	const { pool } = await import('./db/index.js');
-
 	try {
-		// Close all database connections
+		// Import pool to close connections
+		const { pool } = await import('./db/index.js');
 		await pool.end();
 		console.log('Database connections closed.');
+
+		// Close Redis connection if exists
+		// Note: Redis connection is closed via plugin onClose hook
+		// but we can also close it here if app instance is available
 
 		// Exit successfully
 		process.exit(0);
