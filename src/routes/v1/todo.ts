@@ -6,6 +6,13 @@ import {
 	uuidParamSchema,
 	paginationQuerySchema,
 } from '../../validators/params.validator.js';
+import {
+	createTodoSchema,
+	updateTodoSchema,
+	todoResponseSchema,
+	todoListResponseSchema,
+	errorResponseSchema,
+} from '../../utils/schemas.js';
 
 /**
  * Version 1 Todo routes
@@ -26,6 +33,17 @@ export async function todoV1Routes(app: FastifyInstance) {
 		'/v1/todos',
 		{
 			preValidation: [app.authenticate],
+			schema: {
+				description: 'Create a new todo',
+				tags: ['todos'],
+				security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+				body: createTodoSchema,
+				response: {
+					201: todoResponseSchema,
+					400: errorResponseSchema,
+					401: errorResponseSchema,
+				},
+			},
 		},
 		controller.createHandler
 	);
@@ -35,7 +53,15 @@ export async function todoV1Routes(app: FastifyInstance) {
 		{
 			preValidation: [app.authenticate],
 			schema: {
+				description: 'Get all todos for the authenticated user with pagination',
+				tags: ['todos'],
+				security: [{ bearerAuth: [] }, { cookieAuth: [] }],
 				querystring: paginationQuerySchema,
+				response: {
+					200: todoListResponseSchema,
+					400: errorResponseSchema,
+					401: errorResponseSchema,
+				},
 			},
 		},
 		controller.getAllHandler
@@ -46,7 +72,16 @@ export async function todoV1Routes(app: FastifyInstance) {
 		{
 			preValidation: [app.authenticate],
 			schema: {
+				description: 'Get a specific todo by ID',
+				tags: ['todos'],
+				security: [{ bearerAuth: [] }, { cookieAuth: [] }],
 				params: uuidParamSchema,
+				response: {
+					200: todoResponseSchema,
+					400: errorResponseSchema,
+					401: errorResponseSchema,
+					404: errorResponseSchema,
+				},
 			},
 		},
 		controller.getByIdHandler
@@ -57,7 +92,17 @@ export async function todoV1Routes(app: FastifyInstance) {
 		{
 			preValidation: [app.authenticate],
 			schema: {
+				description: 'Update a todo',
+				tags: ['todos'],
+				security: [{ bearerAuth: [] }, { cookieAuth: [] }],
 				params: uuidParamSchema,
+				body: updateTodoSchema,
+				response: {
+					200: todoResponseSchema,
+					400: errorResponseSchema,
+					401: errorResponseSchema,
+					404: errorResponseSchema,
+				},
 			},
 		},
 		controller.updateHandler
@@ -68,7 +113,19 @@ export async function todoV1Routes(app: FastifyInstance) {
 		{
 			preValidation: [app.authenticate],
 			schema: {
+				description: 'Delete a todo',
+				tags: ['todos'],
+				security: [{ bearerAuth: [] }, { cookieAuth: [] }],
 				params: uuidParamSchema,
+				response: {
+					204: {
+						type: 'null',
+						description: 'No content',
+					},
+					400: errorResponseSchema,
+					401: errorResponseSchema,
+					404: errorResponseSchema,
+				},
 			},
 		},
 		controller.deleteHandler

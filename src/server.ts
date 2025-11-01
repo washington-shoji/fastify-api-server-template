@@ -6,6 +6,9 @@ import { healthRoutes } from './routes/health.js';
 import dbPlugin from './plugins/db.js';
 import jwtPlugin from './plugins/jwt.js';
 import redisPlugin from './plugins/redis.js';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
+import { swaggerOptions, swaggerUiOptions } from './config/swagger.js';
 import { setupErrorHandler } from './utils/errorHandler.js';
 import { setupAuthMiddleware } from './middlewares/auth.middleware.js';
 import { setupRateLimit } from './middlewares/rateLimit.middleware.js';
@@ -62,6 +65,13 @@ export async function buildServer() {
 	await app.register(dbPlugin);
 	await app.register(jwtPlugin);
 	await app.register(redisPlugin);
+
+	// Register Swagger/OpenAPI documentation (only in development/test)
+	if (env.NODE_ENV !== 'production' || process.env.ENABLE_SWAGGER === 'true') {
+		await app.register(swagger, swaggerOptions);
+		await app.register(swaggerUi, swaggerUiOptions);
+	}
+
 	await app.register(healthRoutes);
 
 	// Version 1 API routes
