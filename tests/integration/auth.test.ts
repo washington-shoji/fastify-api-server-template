@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildServer } from '../../src/server.js';
-import { pool } from '../../src/db/index.js';
 import { users } from '../../src/db/schema/users.js';
 import { uuidv7 } from 'uuidv7';
 import { eq } from 'drizzle-orm';
+import type { FastifyInstance } from 'fastify';
 
 describe('Authentication Endpoints', () => {
-	let app: Awaited<ReturnType<typeof buildServer>>;
+	let app: FastifyInstance;
 	let testUserId: string;
 
 	beforeAll(async () => {
@@ -23,10 +23,12 @@ describe('Authentication Endpoints', () => {
 
 	afterAll(async () => {
 		// Clean up test user
-		if (testUserId) {
+		if (testUserId && app) {
 			await app.db.delete(users).where(eq(users.id, testUserId));
 		}
-		await app.close();
+		if (app) {
+			await app.close();
+		}
 	});
 
 	it('should issue tokens for valid user', async () => {
@@ -56,7 +58,7 @@ describe('Authentication Endpoints', () => {
 		expect(response.statusCode).toBe(400);
 	});
 
-	it('should return 401 for non-existent user', async () => {
+	it('should return 404 for non-existent user', async () => {
 		const response = await app.inject({
 			method: 'POST',
 			url: '/auth/token',
