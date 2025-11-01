@@ -276,6 +276,10 @@ The Swagger UI provides:
 
 ## Testing
 
+Tests use **Testcontainers** for isolated PostgreSQL containers, ensuring tests never interfere with your development or production databases.
+
+**Prerequisites**: Docker must be installed and running.
+
 Run tests:
 
 ```bash
@@ -289,7 +293,11 @@ Test structure:
 - Integration tests in `tests/integration/`
 - Health check tests
 - Authentication tests
-- More tests can be added following the same pattern
+- Todo CRUD tests
+- Testcontainers for isolated test databases
+- Automatic database cleanup between tests
+
+See `tests/README.md` for detailed testing documentation.
 
 ## Development
 
