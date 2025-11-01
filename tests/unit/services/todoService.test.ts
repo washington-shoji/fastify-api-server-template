@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { createTodoService } from '../../../src/services/todoService.js';
 import { ValidationError } from '../../../src/utils/errors.js';
 import type {
@@ -14,11 +14,11 @@ import { uuidv7 } from 'uuidv7';
 
 describe('TodoService', () => {
 	let mockDeps: {
-		createTodo: ReturnType<typeof vi.fn>;
-		getTodoById: ReturnType<typeof vi.fn>;
-		getAllTodos: ReturnType<typeof vi.fn>;
-		updateTodo: ReturnType<typeof vi.fn>;
-		deleteTodo: ReturnType<typeof vi.fn>;
+		createTodo: Mock;
+		getTodoById: Mock;
+		getAllTodos: Mock;
+		updateTodo: Mock;
+		deleteTodo: Mock;
 	};
 	let todoService: ReturnType<typeof createTodoService>;
 	let testUserId: string;
@@ -26,15 +26,21 @@ describe('TodoService', () => {
 	beforeEach(() => {
 		testUserId = uuidv7();
 
+		const createTodoMock = vi.fn();
+		const getTodoByIdMock = vi.fn();
+		const getAllTodosMock = vi.fn();
+		const updateTodoMock = vi.fn();
+		const deleteTodoMock = vi.fn();
+
 		mockDeps = {
-			createTodo: vi.fn(),
-			getTodoById: vi.fn(),
-			getAllTodos: vi.fn(),
-			updateTodo: vi.fn(),
-			deleteTodo: vi.fn(),
+			createTodo: createTodoMock,
+			getTodoById: getTodoByIdMock,
+			getAllTodos: getAllTodosMock,
+			updateTodo: updateTodoMock,
+			deleteTodo: deleteTodoMock,
 		};
 
-		todoService = createTodoService(mockDeps);
+		todoService = createTodoService(mockDeps as any);
 	});
 
 	describe('createTodo', () => {
@@ -66,6 +72,7 @@ describe('TodoService', () => {
 			const createData: CreateTodo = {
 				title: '   ',
 				description: 'Test description',
+				completed: false,
 			};
 
 			await expect(
@@ -82,6 +89,7 @@ describe('TodoService', () => {
 			const createData: CreateTodo = {
 				title: 'Test Todo',
 				description: 'x'.repeat(10001), // 10001 characters
+				completed: false,
 			};
 
 			await expect(
@@ -98,6 +106,7 @@ describe('TodoService', () => {
 			const createData: CreateTodo = {
 				title: 'Test Todo',
 				description: 'x'.repeat(10000), // Exactly 10000 characters
+				completed: false,
 			};
 
 			const expectedResponse: TodoResponse = {
@@ -182,6 +191,8 @@ describe('TodoService', () => {
 					},
 				],
 				nextCursor: uuidv7(),
+				hasMore: false,
+				count: 1,
 			};
 
 			mockDeps.getAllTodos.mockResolvedValue(expectedResult);
@@ -246,6 +257,8 @@ describe('TodoService', () => {
 			const expectedResult: PaginatedResult<TodoResponse> = {
 				items: [],
 				nextCursor: undefined,
+				hasMore: false,
+				count: 0,
 			};
 
 			mockDeps.getAllTodos.mockResolvedValue(expectedResult);
@@ -260,6 +273,8 @@ describe('TodoService', () => {
 			const expectedResult: PaginatedResult<TodoResponse> = {
 				items: [],
 				nextCursor: undefined,
+				hasMore: false,
+				count: 0,
 			};
 
 			mockDeps.getAllTodos.mockResolvedValue(expectedResult);

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { createAuthService } from '../../../src/services/authService.js';
 import { NotFoundError, UnauthorizedError } from '../../../src/utils/errors.js';
@@ -6,9 +6,13 @@ import type { User } from '../../../src/domain/user/user.schema.js';
 import { uuidv7 } from 'uuidv7';
 
 describe('AuthService', () => {
-	let mockApp: FastifyInstance;
+	let mockApp: FastifyInstance & {
+		signAccessToken: Mock;
+		signRefreshToken: Mock;
+		verifyRefreshToken: Mock;
+	};
 	let mockDeps: {
-		getUserById: ReturnType<typeof vi.fn>;
+		getUserById: Mock;
 	};
 	let authService: ReturnType<typeof createAuthService>;
 	let testUserId: string;
@@ -32,9 +36,16 @@ describe('AuthService', () => {
 			signAccessToken: vi.fn(),
 			signRefreshToken: vi.fn(),
 			verifyRefreshToken: vi.fn(),
-		} as unknown as FastifyInstance;
+		} as unknown as FastifyInstance & {
+			signAccessToken: Mock;
+			signRefreshToken: Mock;
+			verifyRefreshToken: Mock;
+		};
 
-		authService = createAuthService(mockApp, mockDeps);
+		authService = createAuthService(
+			mockApp,
+			mockDeps as { getUserById: (userId: string) => Promise<User | null> }
+		);
 	});
 
 	describe('issueTokens', () => {
@@ -43,12 +54,8 @@ describe('AuthService', () => {
 			const mockRefreshToken = 'refresh-token-456';
 
 			mockDeps.getUserById.mockResolvedValue(testUser);
-			(mockApp.signAccessToken as ReturnType<typeof vi.fn>).mockResolvedValue(
-				mockAccessToken
-			);
-			(mockApp.signRefreshToken as ReturnType<typeof vi.fn>).mockResolvedValue(
-				mockRefreshToken
-			);
+			mockApp.signAccessToken.mockResolvedValue(mockAccessToken);
+			mockApp.signRefreshToken.mockResolvedValue(mockRefreshToken);
 
 			const result = await authService.issueTokens(testUserId);
 
@@ -94,16 +101,10 @@ describe('AuthService', () => {
 				email: testUser.email,
 			};
 
-			(
-				mockApp.verifyRefreshToken as ReturnType<typeof vi.fn>
-			).mockResolvedValue(mockPayload);
+			mockApp.verifyRefreshToken.mockResolvedValue(mockPayload);
 			mockDeps.getUserById.mockResolvedValue(testUser);
-			(mockApp.signAccessToken as ReturnType<typeof vi.fn>).mockResolvedValue(
-				mockNewAccessToken
-			);
-			(mockApp.signRefreshToken as ReturnType<typeof vi.fn>).mockResolvedValue(
-				mockNewRefreshToken
-			);
+			mockApp.signAccessToken.mockResolvedValue(mockNewAccessToken);
+			mockApp.signRefreshToken.mockResolvedValue(mockNewRefreshToken);
 
 			const result = await authService.refreshTokens(mockRefreshToken);
 
@@ -131,9 +132,7 @@ describe('AuthService', () => {
 				email: testUser.email,
 			};
 
-			(
-				mockApp.verifyRefreshToken as ReturnType<typeof vi.fn>
-			).mockResolvedValue(mockPayload);
+			mockApp.verifyRefreshToken.mockResolvedValue(mockPayload);
 			mockDeps.getUserById.mockResolvedValue(null);
 
 			await expect(authService.refreshTokens(mockRefreshToken)).rejects.toThrow(

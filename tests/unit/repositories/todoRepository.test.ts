@@ -9,6 +9,7 @@ import { uuidv7 } from 'uuidv7';
 import type {
 	CreateTodo,
 	UpdateTodo,
+	TodoResponse,
 } from '../../../src/domain/todo/todo.schema.js';
 
 describe('TodoRepository', () => {
@@ -78,6 +79,8 @@ describe('TodoRepository', () => {
 		it('should create todo with default completed false', async () => {
 			const createData: CreateTodo = {
 				title: 'Test Todo',
+				description: null,
+				completed: false,
 			};
 
 			const result = await repository.create(createData, testUserId);
@@ -88,6 +91,8 @@ describe('TodoRepository', () => {
 		it('should invalidate cache after create', async () => {
 			const createData: CreateTodo = {
 				title: 'Test Todo',
+				description: null,
+				completed: false,
 			};
 
 			const cacheKey = `todo:${testUserId}:*`;
@@ -140,6 +145,8 @@ describe('TodoRepository', () => {
 
 			const createData: CreateTodo = {
 				title: 'Other User Todo',
+				description: null,
+				completed: false,
 			};
 
 			const created = await repository.create(createData, otherUserId);
@@ -153,6 +160,8 @@ describe('TodoRepository', () => {
 		it('should cache todo after retrieval', async () => {
 			const createData: CreateTodo = {
 				title: 'Test Todo',
+				description: null,
+				completed: false,
 			};
 
 			const created = await repository.create(createData, testUserId);
@@ -169,10 +178,18 @@ describe('TodoRepository', () => {
 
 	describe('getAll', () => {
 		it('should return all todos for user', async () => {
-			const todos = [
-				{ title: 'Todo 1', description: 'Description 1' },
-				{ title: 'Todo 2', description: 'Description 2' },
-				{ title: 'Todo 3', description: null },
+			const todos: CreateTodo[] = [
+				{
+					title: 'Todo 1',
+					description: 'Description 1',
+					completed: false,
+				},
+				{
+					title: 'Todo 2',
+					description: 'Description 2',
+					completed: false,
+				},
+				{ title: 'Todo 3', description: null, completed: false },
 			];
 
 			for (const todo of todos) {
@@ -199,8 +216,14 @@ describe('TodoRepository', () => {
 				password: 'hashedpassword',
 			});
 
-			await repository.create({ title: 'Test User Todo' }, testUserId);
-			await repository.create({ title: 'Other User Todo' }, otherUserId);
+			await repository.create(
+				{ title: 'Test User Todo', description: null, completed: false },
+				testUserId
+			);
+			await repository.create(
+				{ title: 'Other User Todo', description: null, completed: false },
+				otherUserId
+			);
 
 			const result = await repository.getAll(testUserId);
 
@@ -212,7 +235,11 @@ describe('TodoRepository', () => {
 			// Create 5 todos
 			for (let i = 1; i <= 5; i++) {
 				await repository.create(
-					{ title: `Todo ${i}`, completed: i % 2 === 0 },
+					{
+						title: `Todo ${i}`,
+						description: null,
+						completed: i % 2 === 0,
+					},
 					testUserId
 				);
 			}
@@ -224,10 +251,10 @@ describe('TodoRepository', () => {
 
 		it('should support cursor-based pagination', async () => {
 			// Create 5 todos
-			const createdTodos = [];
+			const createdTodos: TodoResponse[] = [];
 			for (let i = 1; i <= 5; i++) {
 				const todo = await repository.create(
-					{ title: `Todo ${i}` },
+					{ title: `Todo ${i}`, description: null, completed: false },
 					testUserId
 				);
 				createdTodos.push(todo);
@@ -313,7 +340,7 @@ describe('TodoRepository', () => {
 			});
 
 			const created = await repository.create(
-				{ title: 'Other User Todo' },
+				{ title: 'Other User Todo', description: null, completed: false },
 				otherUserId
 			);
 
@@ -358,7 +385,7 @@ describe('TodoRepository', () => {
 
 		it('should invalidate cache after update', async () => {
 			const created = await repository.create(
-				{ title: 'Test Todo' },
+				{ title: 'Test Todo', description: null, completed: false },
 				testUserId
 			);
 
@@ -382,7 +409,7 @@ describe('TodoRepository', () => {
 	describe('delete', () => {
 		it('should delete todo if exists and belongs to user', async () => {
 			const created = await repository.create(
-				{ title: 'Test Todo' },
+				{ title: 'Test Todo', description: null, completed: false },
 				testUserId
 			);
 
@@ -413,7 +440,7 @@ describe('TodoRepository', () => {
 			});
 
 			const created = await repository.create(
-				{ title: 'Other User Todo' },
+				{ title: 'Other User Todo', description: null, completed: false },
 				otherUserId
 			);
 
@@ -428,7 +455,7 @@ describe('TodoRepository', () => {
 
 		it('should invalidate cache after delete', async () => {
 			const created = await repository.create(
-				{ title: 'Test Todo' },
+				{ title: 'Test Todo', description: null, completed: false },
 				testUserId
 			);
 
