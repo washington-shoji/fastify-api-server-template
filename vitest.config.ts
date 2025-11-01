@@ -19,5 +19,10 @@ export default defineConfig({
 		testTimeout: 30000, // Increased for testcontainer startup
 		setupFiles: ['./tests/setup.ts'],
 		hookTimeout: 60000, // Timeout for beforeAll/afterAll hooks (container startup)
+		// Ensure setupFiles run before test files are loaded
+		sequence: {
+			setupFiles: 'list', // Run setup files in sequence
+			shuffle: false,
+		},
 	},
 });

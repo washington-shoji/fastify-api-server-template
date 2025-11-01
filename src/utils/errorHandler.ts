@@ -36,6 +36,45 @@ export function setupErrorHandler(app: FastifyInstance) {
 				});
 			}
 
+			// Handle Fastify schema validation errors (runs before controller)
+			// Fastify validation errors have a 'validation' property with array of errors
+			// These errors occur during schema validation before the route handler runs
+			// FastifyError also has statusCode 400 for validation errors
+			if (
+				(error as any).validation ||
+				(error as any).validationContext ||
+				((error as any).statusCode === 400 &&
+					(error as any).code?.startsWith('FST'))
+			) {
+				const validationError = error as any;
+				const validationErrors = Array.isArray(validationError.validation)
+					? validationError.validation
+					: validationError.validation
+					? [validationError.validation]
+					: [];
+
+				return reply.code(400).send({
+					message:
+						validationError.message || error.message || 'Validation failed',
+					...(validationErrors.length > 0 && {
+						errors: validationErrors.map((v: any) => {
+							const path = (
+								v.instancePath ||
+								v.params?.missingProperty ||
+								v.dataPath ||
+								v.path ||
+								''
+							).replace(/^\//, '');
+							return {
+								path: path ? path.split('/').filter(Boolean) : [],
+								message:
+									v.message || validationError.message || 'Validation error',
+							};
+						}),
+					}),
+				});
+			}
+
 			// Handle Zod validation errors
 			if (error.name === 'ZodError' && 'issues' in error) {
 				const zodError = error as {
@@ -53,7 +92,11 @@ export function setupErrorHandler(app: FastifyInstance) {
 			// Handle JWT errors
 			if (
 				error.name === 'UnauthorizedError' ||
-				error.name === 'JsonWebTokenError'
+				error.name === 'JsonWebTokenError' ||
+				error.name === 'TokenExpiredError' ||
+				error.name === 'NotBeforeError' ||
+				error.message?.includes('jwt') ||
+				error.message?.includes('token')
 			) {
 				return reply.code(401).send({
 					message: 'Unauthorized',

@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { buildServer } from '../../src/server.js';
 import { todos } from '../../src/db/schema/todos.js';
 import { users as usersTable } from '../../src/db/schema/users.js';
 import { uuidv7 } from 'uuidv7';
 import type { FastifyInstance } from 'fastify';
 import { cleanTestDatabase, createTestDb } from '../helpers/testDb.js';
+import { resetDatabaseConnections } from '../../src/db/index.js';
+import { buildServer } from '../../src/server.js';
 
 describe('Todo Endpoints', () => {
 	let app: FastifyInstance;
@@ -13,6 +14,10 @@ describe('Todo Endpoints', () => {
 	let testUserAccessToken: string;
 
 	beforeAll(async () => {
+		// Reset database connections to ensure we use the test database URL
+		// (which was set in setup.ts beforeAll)
+		resetDatabaseConnections();
+
 		app = await buildServer();
 		testDb = createTestDb();
 	});
@@ -39,8 +44,10 @@ describe('Todo Endpoints', () => {
 			},
 		});
 
+		expect(tokenResponse.statusCode).toBe(200);
 		const tokenBody = JSON.parse(tokenResponse.body);
 		testUserAccessToken = tokenBody.accessToken;
+		expect(testUserAccessToken).toBeTruthy();
 	});
 
 	afterAll(async () => {

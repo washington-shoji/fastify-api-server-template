@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { buildServer } from '../../src/server.js';
 import { users } from '../../src/db/schema/users.js';
 import { uuidv7 } from 'uuidv7';
 import { eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { cleanTestDatabase, createTestDb } from '../helpers/testDb.js';
+import { resetDatabaseConnections } from '../../src/db/index.js';
+import { buildServer } from '../../src/server.js';
 
 describe('Authentication Endpoints', () => {
 	let app: FastifyInstance;
@@ -12,6 +13,10 @@ describe('Authentication Endpoints', () => {
 	let testDb: ReturnType<typeof createTestDb>;
 
 	beforeAll(async () => {
+		// Reset database connections to ensure we use the test database URL
+		// (which was set in setup.ts beforeAll)
+		resetDatabaseConnections();
+
 		// Build server with test database (already set up in setup.ts)
 		app = await buildServer();
 		testDb = createTestDb();

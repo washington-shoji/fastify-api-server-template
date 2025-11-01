@@ -7,12 +7,17 @@ import { UnauthorizedError } from '../utils/errors.js';
 
 async function jwtPlugin(app: FastifyInstance) {
 	// Register JWT plugin for access tokens
+	// By default, @fastify/jwt reads from:
+	// 1. Authorization header (Bearer token) - automatic
+	// 2. Cookies - if configured
 	await app.register(jwt, {
 		secret: env.JWT_ACCESS_SECRET,
 		cookie: {
 			cookieName: 'access_token',
 			signed: false,
 		},
+		// Explicitly configure to read from Authorization header (this is default, but being explicit)
+		// The plugin automatically reads from Authorization: Bearer <token> by default
 	});
 
 	// Create a separate JWT instance for refresh tokens
@@ -21,8 +26,21 @@ async function jwtPlugin(app: FastifyInstance) {
 		'authenticate',
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			try {
+				// jwtVerify automatically reads from Authorization: Bearer <token> header
+				// or from cookies if configured
 				await request.jwtVerify();
-			} catch (err) {
+			} catch (err: any) {
+				// Log the actual error for debugging in tests
+				if (process.env.NODE_ENV !== 'production') {
+					request.log.debug(
+						{
+							err,
+							authHeader: request.headers.authorization,
+							hasCookie: !!request.cookies?.access_token,
+						},
+						'JWT verification failed'
+					);
+				}
 				throw new UnauthorizedError();
 			}
 		}

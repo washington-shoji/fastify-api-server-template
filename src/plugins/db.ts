@@ -9,7 +9,10 @@ async function dbConnector(app: FastifyInstance) {
 	app.decorate('db', db);
 
 	app.addHook('onClose', async () => {
-		await pool.end();
+		// Only close pool if it's not already closed (prevents double-close errors)
+		if (!pool.ended) {
+			await pool.end();
+		}
 	});
 }
 

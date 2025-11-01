@@ -7,10 +7,12 @@ import { UnauthorizedError } from '../utils/errors.js';
  */
 export function setupAuthMiddleware(app: FastifyInstance) {
 	// Hook to extract userId from request.user after authentication
+	// Use 'preHandler' hook which runs AFTER preValidation (where authenticate runs)
+	// This ensures request.user is set by jwtVerify before we extract userId
 	app.addHook(
-		'onRequest',
+		'preHandler',
 		async (request: FastifyRequest, reply: FastifyReply) => {
-			// Only process authenticated requests
+			// Only process authenticated requests (request.user is set by jwtVerify)
 			if (request.user) {
 				const userId = (request.user as { sub?: string })?.sub;
 				if (userId) {

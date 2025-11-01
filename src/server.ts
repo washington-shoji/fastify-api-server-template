@@ -106,35 +106,57 @@ async function shutdown(signal: string) {
 	try {
 		// Import pool to close connections
 		const { pool } = await import('./db/index.js');
-		await pool.end();
-		console.log('Database connections closed.');
+
+		// Check if pool is already closed (prevents double-close errors in tests)
+		if (!pool.ended) {
+			await pool.end();
+			console.log('Database connections closed.');
+		}
 
 		// Close Redis connection if exists
 		// Note: Redis connection is closed via plugin onClose hook
 		// but we can also close it here if app instance is available
 
-		// Exit successfully
-		process.exit(0);
+		// Exit successfully (only if not in test mode)
+		if (
+			process.env.NODE_ENV !== 'test' &&
+			typeof process.env.VITEST === 'undefined'
+		) {
+			process.exit(0);
+		}
 	} catch (error) {
 		console.error('Error during shutdown:', error);
-		process.exit(1);
+		// Only exit if not in test mode
+		if (
+			process.env.NODE_ENV !== 'test' &&
+			typeof process.env.VITEST === 'undefined'
+		) {
+			process.exit(1);
+		}
 	}
 }
 
-// Register shutdown handlers
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+// Only register shutdown handlers and start server if not in test mode
+const isTestMode =
+	process.env.NODE_ENV === 'test' || typeof process.env.VITEST !== 'undefined';
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-	console.error('Uncaught Exception:', error);
-	shutdown('uncaughtException');
-});
+if (!isTestMode) {
+	// Register shutdown handlers
+	process.on('SIGTERM', () => shutdown('SIGTERM'));
+	process.on('SIGINT', () => shutdown('SIGINT'));
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-	console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-	shutdown('unhandledRejection');
-});
+	// Handle uncaught exceptions
+	process.on('uncaughtException', (error) => {
+		console.error('Uncaught Exception:', error);
+		shutdown('uncaughtException');
+	});
 
-start();
+	// Handle unhandled promise rejections
+	process.on('unhandledRejection', (reason, promise) => {
+		console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+		shutdown('unhandledRejection');
+	});
+
+	// Start server only if not in test mode
+	start();
+}
