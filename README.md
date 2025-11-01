@@ -214,11 +214,11 @@ vitest.config.ts         # Test configuration
 
 ### Authentication
 
-- `POST /auth/token` - Issue access & refresh tokens
-- `POST /auth/refresh` - Refresh tokens
-- `GET /auth/me` - Get current user (authenticated)
+- `POST /v1/auth/token` - Issue access & refresh tokens
+- `POST /v1/auth/refresh` - Refresh tokens
+- `GET /v1/auth/me` - Get current user (authenticated)
 
-### Todos (Version 1 API)
+### Todos
 
 - `POST /v1/todos` - Create todo (authenticated)
 - `GET /v1/todos?limit=20&cursor=<uuid>` - List todos with pagination (authenticated)

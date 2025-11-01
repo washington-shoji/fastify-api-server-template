@@ -4,12 +4,12 @@ Base URL: `http://localhost:3000`
 
 ## API Versioning
 
-This API supports versioning to handle breaking changes gracefully:
+This API uses versioning to handle breaking changes gracefully:
 
-- **Version 1**: `/v1/*` routes (recommended for new integrations)
-- **Legacy**: `/auth/*`, `/todos/*` (backward compatibility, may be deprecated)
+- **Version 1**: `/v1/*` routes (all endpoints are versioned)
+- **Future versions**: `/v2/*` routes can be added without breaking existing clients
 
-**Recommendation**: Use versioned routes (`/v1/*`) for all new integrations.
+**All endpoints are versioned** - always use `/v1/*` routes.
 
 ## Authentication
 

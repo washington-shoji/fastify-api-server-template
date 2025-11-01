@@ -243,10 +243,10 @@ Located in `src/utils/queryMonitor.ts`:
 
 ### Strategy
 
-- **Versioned routes**: `/v1/todos`, `/v1/auth`
-- **Legacy routes**: `/todos`, `/auth` (backward compatibility)
-- Future versions: `/v2/*` can be added without breaking existing clients
+- **Versioned routes**: `/v1/todos`, `/v1/auth` (all endpoints are versioned)
+- **Future versions**: `/v2/*` can be added without breaking existing clients
 - Routes defined in `src/routes/v1/`
+- All endpoints require version prefix for safety and clarity
 
 ## Logging
 
