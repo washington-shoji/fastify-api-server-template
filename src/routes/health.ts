@@ -4,10 +4,7 @@ export async function healthRoutes(app: FastifyInstance) {
 	app.get('/health', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
 			// Check database connectivity
-			await app.db.execute({
-				sql: 'SELECT 1 as health',
-				params: [],
-			});
+			await app.db.execute('SELECT 1 as health');
 
 			return {
 				status: 'ok',
@@ -40,10 +37,7 @@ export async function healthRoutes(app: FastifyInstance) {
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			try {
 				// Check database connectivity
-				await app.db.execute({
-					sql: 'SELECT 1 as health',
-					params: [],
-				});
+				await app.db.execute('SELECT 1 as health');
 
 				return {
 					status: 'ready',
