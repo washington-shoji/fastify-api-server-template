@@ -72,6 +72,11 @@ export async function buildServer() {
 		await app.register(swaggerUi, swaggerUiOptions);
 	}
 
+	// Register services in DI container (optional - can be used instead of manual wiring)
+	// Uncomment the line below to use DI container pattern
+	// import { registerServices } from './di/services.js';
+	// registerServices(app);
+
 	await app.register(healthRoutes);
 
 	// Version 1 API routes
