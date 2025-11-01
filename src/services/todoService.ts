@@ -58,7 +58,7 @@ export function createTodoService(deps: {
 			// Business logic: Validate pagination parameters
 			if (pagination) {
 				if (
-					pagination.limit &&
+					pagination.limit !== undefined &&
 					(pagination.limit < 1 || pagination.limit > 100)
 				) {
 					throw new ValidationError(

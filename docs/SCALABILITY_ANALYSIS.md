@@ -420,8 +420,12 @@ src/
    - Health check tests
    - Authentication tests
    - Todo CRUD tests
-2. ⏳ **Unit Tests:** Service layer business logic (Future enhancement)
-3. ⏳ **Repository Tests:** Data access layer (Future enhancement)
+2. ✅ **Unit Tests:** Service layer business logic (Implemented)
+   - `todoService` unit tests - Business logic validation (20 tests)
+   - `authService` unit tests - Token issuance and refresh (6 tests)
+3. ✅ **Repository Tests:** Data access layer (Implemented)
+   - `todoRepository` unit tests - CRUD operations with database (22 tests)
+   - `userRepository` unit tests - User data access operations (15 tests)
 4. ⏳ **E2E Tests:** Critical user flows (Future enhancement)
 
 ### Recommended Tools ✅ **IMPLEMENTED**
@@ -429,7 +433,8 @@ src/
 - ✅ **Vitest** for test framework (Configured)
 - ✅ **Fastify inject** for API testing (Used in integration tests)
 - ✅ **Testcontainers** for database testing (Implemented with PostgreSQL containers)
-- ⏳ **Coverage:** Target 70%+ coverage (Infrastructure ready)
+- ✅ **Unit Tests** for services and repositories (63 unit tests implemented)
+- ⏳ **Coverage:** Target 70%+ coverage (Infrastructure ready, can run with `npm run test:coverage`)
 
 ---
 
