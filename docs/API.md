@@ -2,23 +2,96 @@
 
 Base URL: `http://localhost:3000`
 
-## Health
+## API Versioning
+
+This API supports versioning to handle breaking changes gracefully:
+
+- **Version 1**: `/v1/*` routes (recommended for new integrations)
+- **Legacy**: `/auth/*`, `/todos/*` (backward compatibility, may be deprecated)
+
+**Recommendation**: Use versioned routes (`/v1/*`) for all new integrations.
+
+## Authentication
+
+All protected endpoints require authentication via:
+
+- `Authorization: Bearer <accessToken>` header, or
+- `access_token` httpOnly cookie
+
+### Token Lifecycle
+
+1. **Issue tokens**: `POST /auth/token` or `POST /v1/auth/token`
+2. **Use access token**: Include in `Authorization` header or rely on cookie
+3. **Refresh tokens**: `POST /auth/refresh` or `POST /v1/auth/refresh` when access token expires
+
+## Health Endpoints
 
 ### GET `/health`
 
-Simple health check endpoint.
+Full health check including database connectivity.
 
-**Response:**
+**Response:** `200 OK`
 
 ```json
 {
-	"status": "ok"
+	"status": "ok",
+	"timestamp": "2024-01-15T10:30:00.000Z",
+	"checks": {
+		"database": "healthy"
+	}
 }
 ```
 
-## Auth
+**Response:** `503 Service Unavailable` (if database unavailable)
 
-### POST `/auth/token`
+```json
+{
+	"status": "error",
+	"timestamp": "2024-01-15T10:30:00.000Z",
+	"checks": {
+		"database": "unhealthy"
+	}
+}
+```
+
+### GET `/health/live`
+
+Liveness probe - indicates the application is running.
+
+**Response:** `200 OK`
+
+```json
+{
+	"status": "ok",
+	"timestamp": "2024-01-15T10:30:00.000Z"
+}
+```
+
+### GET `/health/ready`
+
+Readiness probe - indicates the application is ready to serve requests (includes database check).
+
+**Response:** `200 OK`
+
+```json
+{
+	"status": "ready",
+	"timestamp": "2024-01-15T10:30:00.000Z"
+}
+```
+
+**Response:** `503 Service Unavailable` (if not ready)
+
+```json
+{
+	"status": "not ready",
+	"timestamp": "2024-01-15T10:30:00.000Z"
+}
+```
+
+## Authentication Endpoints
+
+### POST `/auth/token` or `POST /v1/auth/token`
 
 Issue access and refresh tokens for a user.
 
@@ -26,23 +99,31 @@ Issue access and refresh tokens for a user.
 
 ```json
 {
-	"userId": "550e8400-e29b-41d4-a716-446655440000"
+	"userId": "550e8400-e29b-41d4-a716-446655440000",
+	"email": "user@example.com"
 }
 ```
 
-**Response:**
+**Response:** `200 OK`
 
 ```json
 {
-	"accessToken": "eyJhbGc...",
-	"refreshToken": "eyJhbGc..."
+	"accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+	"refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
-- Also sets `access_token` and `refresh_token` cookies (httpOnly, lax).
-- User ID must exist in the database.
+- Sets `access_token` and `refresh_token` as httpOnly cookies
+- User ID must exist in the database
+- Access token expires in 15 minutes (default)
+- Refresh token expires in 7 days (default)
 
-### POST `/auth/refresh`
+**Errors:**
+
+- `400 Bad Request` - Invalid request body
+- `404 Not Found` - User not found
+
+### POST `/auth/refresh` or `POST /v1/auth/refresh`
 
 Refresh access and refresh tokens.
 
@@ -50,32 +131,34 @@ Refresh access and refresh tokens.
 
 ```json
 {
-	"refreshToken": "eyJhbGc..."
+	"refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
-**Response:**
+**Response:** `200 OK`
 
 ```json
 {
-	"accessToken": "eyJhbGc...",
-	"refreshToken": "eyJhbGc..."
+	"accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+	"refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
-- Uses refresh token from cookie or request body.
-- Also sets new tokens as cookies.
+- Uses refresh token from cookie or request body
+- Sets new tokens as httpOnly cookies
+- Refresh token must be signed with `JWT_REFRESH_SECRET`
 
-### GET `/auth/me`
+**Errors:**
+
+- `401 Unauthorized` - Invalid or missing refresh token
+
+### GET `/auth/me` or `GET /v1/auth/me`
 
 Get current authenticated user info.
 
-**Authentication:**
+**Authentication:** Required (Bearer token or cookie)
 
-- `Authorization: Bearer <accessToken>` header, or
-- `access_token` cookie
-
-**Response:**
+**Response:** `200 OK`
 
 ```json
 {
@@ -88,15 +171,19 @@ Get current authenticated user info.
 }
 ```
 
-## Todos (CRUD)
+**Errors:**
 
-All todo endpoints require authentication and are user-scoped.
+- `401 Unauthorized` - Missing or invalid authentication token
 
-### POST `/todos`
+## Todo Endpoints
+
+All todo endpoints require authentication and are user-scoped. The `user_id` is never exposed to clients.
+
+### POST `/todos` or `POST /v1/todos`
 
 Create a new todo.
 
-**Authentication:** Required (Bearer token or cookie)
+**Authentication:** Required
 
 **Body:**
 
@@ -121,19 +208,35 @@ Create a new todo.
 }
 ```
 
-**Note:** `user_id` is never exposed to clients for security reasons. User ownership is determined from the authentication context.
+**Note:** `user_id` is never exposed to clients. User ownership is determined from the authentication context.
 
-### GET `/todos`
+**Errors:**
 
-Get all todos for the authenticated user.
+- `400 Bad Request` - Invalid request body or validation errors
+- `401 Unauthorized` - Missing or invalid authentication token
+
+### GET `/todos` or `GET /v1/todos`
+
+Get all todos for the authenticated user with pagination.
 
 **Authentication:** Required
 
-**Response:**
+**Query Parameters:**
+
+- `limit` (optional, default: 20, max: 100) - Number of items per page
+- `cursor` (optional) - UUID cursor for pagination (from previous response)
+
+**Example:**
+
+```
+GET /v1/todos?limit=20&cursor=018e5f5d-1234-7890-abcd-123456789abc
+```
+
+**Response:** `200 OK`
 
 ```json
 {
-	"todos": [
+	"items": [
 		{
 			"id": "018e5f5d-1234-7890-abcd-123456789abc",
 			"title": "Complete project",
@@ -143,16 +246,26 @@ Get all todos for the authenticated user.
 			"updated_at": "2024-01-15T10:30:00.000Z"
 		}
 	],
-	"count": 1
+	"nextCursor": "018e5f5d-1234-7890-abcd-123456789abc",
+	"hasMore": true,
+	"count": 20
 }
 ```
 
-**Note:** `user_id` is never returned. Only todos owned by the authenticated user are returned.
+**Pagination:**
 
-- Returns todos ordered by `created_at DESC`.
-- Only returns todos owned by the authenticated user.
+- Use `nextCursor` from response as `cursor` parameter for next page
+- If `hasMore` is `false`, no more pages available
+- `count` is the number of items in current page
 
-### GET `/todos/:id`
+**Note:** `user_id` is never returned. Only todos owned by the authenticated user are returned. Results are ordered by `created_at DESC` (newest first).
+
+**Errors:**
+
+- `400 Bad Request` - Invalid pagination parameters
+- `401 Unauthorized` - Missing or invalid authentication token
+
+### GET `/todos/:id` or `GET /v1/todos/:id`
 
 Get a specific todo by ID.
 
@@ -160,7 +273,7 @@ Get a specific todo by ID.
 
 **Parameters:**
 
-- `id` (UUID) - Todo ID
+- `id` (UUID, required) - Todo ID (must be valid UUID format)
 
 **Response:** `200 OK`
 
@@ -175,13 +288,15 @@ Get a specific todo by ID.
 }
 ```
 
-**Note:** `user_id` is never exposed to clients.
+**Note:** `user_id` is never exposed to clients. Only returns todos owned by the authenticated user.
 
 **Errors:**
 
+- `400 Bad Request` - Invalid UUID format
+- `401 Unauthorized` - Missing or invalid authentication token
 - `404 Not Found` - Todo not found or not owned by user
 
-### PUT `/todos/:id`
+### PUT `/todos/:id` or `PUT /v1/todos/:id`
 
 Update a todo.
 
@@ -189,7 +304,7 @@ Update a todo.
 
 **Parameters:**
 
-- `id` (UUID) - Todo ID
+- `id` (UUID, required) - Todo ID
 
 **Body:** (all fields optional)
 
@@ -218,10 +333,11 @@ Update a todo.
 
 **Errors:**
 
-- `400 Bad Request` - Invalid request body
+- `400 Bad Request` - Invalid UUID format or request body
+- `401 Unauthorized` - Missing or invalid authentication token
 - `404 Not Found` - Todo not found or not owned by user
 
-### DELETE `/todos/:id`
+### DELETE `/todos/:id` or `DELETE /v1/todos/:id`
 
 Delete a todo.
 
@@ -229,32 +345,51 @@ Delete a todo.
 
 **Parameters:**
 
-- `id` (UUID) - Todo ID
+- `id` (UUID, required) - Todo ID
 
 **Response:** `204 No Content`
 
 **Errors:**
 
+- `400 Bad Request` - Invalid UUID format
+- `401 Unauthorized` - Missing or invalid authentication token
 - `404 Not Found` - Todo not found or not owned by user
 
-## Error responses
+## Internal Endpoints
 
-All endpoints may return:
+### GET `/internal/metrics/queries`
 
-- `400 Bad Request` - Invalid request body or validation errors
-- `401 Unauthorized` - Missing or invalid authentication token
-- `404 Not Found` - Resource not found or not accessible
-- `500 Internal Server Error` - Server error
+Query performance metrics (internal use only).
 
-Example error response:
+**Note:** This endpoint should be protected by network/firewall in production. Authentication can be added.
+
+**Response:** `200 OK`
 
 ```json
 {
-	"message": "Todo not found"
+	"slowQueries": [
+		{
+			"timestamp": 1234567890,
+			"duration": 1500,
+			"query": "SELECT * FROM template_api_todos..."
+		}
+	],
+	"failedQueries": [],
+	"averageDuration": 250,
+	"totalQueries": 1000,
+	"threshold": 1000
 }
 ```
 
-Validation errors:
+## Error Responses
+
+All endpoints may return the following error codes:
+
+### 400 Bad Request
+
+Invalid request body, validation errors, or invalid parameters.
+
+**Response:**
 
 ```json
 {
@@ -266,4 +401,131 @@ Validation errors:
 		}
 	]
 }
+```
+
+### 401 Unauthorized
+
+Missing or invalid authentication token.
+
+**Response:**
+
+```json
+{
+	"message": "Unauthorized"
+}
+```
+
+### 404 Not Found
+
+Resource not found or not accessible to the user.
+
+**Response:**
+
+```json
+{
+	"message": "Todo not found"
+}
+```
+
+### 409 Conflict
+
+Resource conflict (e.g., unique constraint violation).
+
+**Response:**
+
+```json
+{
+	"message": "Resource already exists"
+}
+```
+
+### 429 Too Many Requests
+
+Rate limit exceeded.
+
+**Response:**
+
+```json
+{
+	"message": "Too many requests",
+	"retryAfter": 60
+}
+```
+
+### 500 Internal Server Error
+
+Server error.
+
+**Response:**
+
+```json
+{
+	"message": "Internal server error"
+}
+```
+
+In development, error details may be included. In production, only the message is returned.
+
+## Rate Limiting
+
+The API implements rate limiting per IP address:
+
+- **Default**: 100 requests per time window (configurable via `RATE_LIMIT_MAX`)
+- **Time Window**: 1 minute (configurable via `RATE_LIMIT_TIME_WINDOW`)
+- **Response**: `429 Too Many Requests` when limit exceeded
+- **Headers**: `Retry-After` indicates seconds until retry is allowed
+
+## Request Headers
+
+### X-Request-ID
+
+The API automatically generates and tracks request IDs for correlation:
+
+- **Request**: Optional `X-Request-ID` or `X-Correlation-ID` header
+- **Response**: `X-Request-ID` header is always set
+- **Usage**: Use for log correlation and distributed tracing
+
+## Response Headers
+
+- `X-Request-ID` - Request correlation ID
+- `Content-Type: application/json` - All responses are JSON
+- `Set-Cookie` - Authentication tokens (httpOnly cookies)
+
+## Security Notes
+
+1. **User ID Privacy**: `user_id` is never exposed in any API response. User ownership is determined from the authentication context (`request.user.sub`).
+
+2. **Token Security**:
+
+   - Access and refresh tokens use separate secrets
+   - Tokens are stored in httpOnly cookies (prevents XSS)
+   - Refresh tokens use a different secret than access tokens
+
+3. **Input Validation**: All inputs are validated via Zod schemas and sanitized.
+
+4. **SQL Injection**: Protected via Drizzle ORM parameterized queries.
+
+5. **Rate Limiting**: Enforced per IP to prevent abuse.
+
+## Pagination Best Practices
+
+1. **First Request**: Don't include `cursor`, set `limit` as needed
+2. **Next Page**: Use `nextCursor` from previous response as `cursor` parameter
+3. **Last Page**: When `hasMore` is `false`, no more pages available
+4. **Limit**: Keep between 1-100 for optimal performance (default: 20)
+
+**Example Flow:**
+
+```bash
+# First page
+GET /v1/todos?limit=20
+# Response: { "items": [...], "nextCursor": "abc...", "hasMore": true }
+
+# Next page
+GET /v1/todos?limit=20&cursor=abc...
+# Response: { "items": [...], "nextCursor": "def...", "hasMore": true }
+
+# Last page
+GET /v1/todos?limit=20&cursor=def...
+# Response: { "items": [...], "hasMore": false }
 ```
