@@ -9,6 +9,15 @@ import {
 	NotFoundError,
 	UnauthorizedError,
 } from '../utils/errors.js';
+import {
+	toTodoResponseDTO,
+	toTodoResponseDTOArray,
+	fromCreateTodoDTO,
+	fromUpdateTodoDTO,
+	type CreateTodoDTO,
+	type UpdateTodoDTO,
+	type TodoListResponseDTO,
+} from '../dto/todo.dto.js';
 
 export function createTodoController(
 	app: FastifyInstance,
@@ -20,13 +29,21 @@ export function createTodoController(
 			throw new UnauthorizedError();
 		}
 
+		// Validate request body using Zod schema
 		const parsed = CreateTodoSchema.safeParse(request.body);
 		if (!parsed.success) {
 			throw new ValidationError('Invalid request body', parsed.error.errors);
 		}
 
-		const todo = await todoService.createTodo(parsed.data, userId);
-		return reply.code(201).send(todo);
+		// Transform DTO to domain model
+		const createData = fromCreateTodoDTO(parsed.data as CreateTodoDTO);
+
+		// Call service with domain model
+		const todo = await todoService.createTodo(createData, userId);
+
+		// Transform domain model to response DTO
+		const responseDTO = toTodoResponseDTO(todo);
+		return reply.code(201).send(responseDTO);
 	}
 
 	async function getByIdHandler(request: FastifyRequest, reply: FastifyReply) {
@@ -42,7 +59,9 @@ export function createTodoController(
 			throw new NotFoundError('Todo not found');
 		}
 
-		return reply.send(todo);
+		// Transform domain model to response DTO
+		const responseDTO = toTodoResponseDTO(todo);
+		return reply.send(responseDTO);
 	}
 
 	async function getAllHandler(request: FastifyRequest, reply: FastifyReply) {
@@ -60,7 +79,15 @@ export function createTodoController(
 		};
 
 		const result = await todoService.getAllTodos(userId, paginationParams);
-		return reply.send(result);
+
+		// Transform domain models to response DTOs
+		const responseDTO: TodoListResponseDTO = {
+			items: toTodoResponseDTOArray(result.items),
+			nextCursor: result.nextCursor ?? null,
+			hasMore: result.hasMore,
+			count: result.count,
+		};
+		return reply.send(responseDTO);
 	}
 
 	async function updateHandler(request: FastifyRequest, reply: FastifyReply) {
@@ -76,13 +103,19 @@ export function createTodoController(
 			throw new ValidationError('Invalid request body', parsed.error.errors);
 		}
 
-		const todo = await todoService.updateTodo(id, parsed.data, userId);
+		// Transform DTO to domain model
+		const updateData = fromUpdateTodoDTO(parsed.data as UpdateTodoDTO);
+
+		// Call service with domain model
+		const todo = await todoService.updateTodo(id, updateData, userId);
 
 		if (!todo) {
 			throw new NotFoundError('Todo not found');
 		}
 
-		return reply.send(todo);
+		// Transform domain model to response DTO
+		const responseDTO = toTodoResponseDTO(todo);
+		return reply.send(responseDTO);
 	}
 
 	async function deleteHandler(request: FastifyRequest, reply: FastifyReply) {

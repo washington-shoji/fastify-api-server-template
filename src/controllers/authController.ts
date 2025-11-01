@@ -2,6 +2,11 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { env } from '../env.js';
 import type { createAuthService } from '../services/authService.js';
+import {
+	toUserInfoDTO,
+	fromIssueTokenDTO,
+	type TokenResponseDTO,
+} from '../dto/auth.dto.js';
 
 export function createAuthController(
 	app: FastifyInstance,
@@ -20,9 +25,13 @@ export function createAuthController(
 		if (!parsed.success)
 			return reply.code(400).send({ message: 'Invalid body' });
 
-		const { accessToken, refreshToken } = await authService.issueTokens(
-			parsed.data.userId
-		);
+		// Transform DTO to domain format
+		const { userId } = fromIssueTokenDTO({
+			userId: parsed.data.userId,
+			email: parsed.data.email,
+		});
+
+		const { accessToken, refreshToken } = await authService.issueTokens(userId);
 
 		const commonCookie = {
 			httpOnly: true,
@@ -42,7 +51,13 @@ export function createAuthController(
 				maxAge: 7 * 24 * 60 * 60,
 			});
 
-		return { accessToken, refreshToken };
+		// Transform to response DTO
+		const responseDTO: TokenResponseDTO = {
+			accessToken,
+			refreshToken,
+		};
+
+		return responseDTO;
 	}
 
 	async function refreshHandler(request: FastifyRequest, reply: FastifyReply) {
@@ -79,11 +94,19 @@ export function createAuthController(
 				maxAge: 7 * 24 * 60 * 60,
 			});
 
-		return { accessToken, refreshToken };
+		// Transform to response DTO
+		const responseDTO: TokenResponseDTO = {
+			accessToken,
+			refreshToken,
+		};
+
+		return responseDTO;
 	}
 
 	async function meHandler(request: FastifyRequest) {
-		return { user: request.user };
+		// Transform JWT payload to response DTO
+		const userDTO = toUserInfoDTO(request.user);
+		return { user: userDTO };
 	}
 
 	return { issueTokenHandler, refreshHandler, meHandler };
