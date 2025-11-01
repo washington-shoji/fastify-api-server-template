@@ -139,6 +139,10 @@ npm run db:push
 
 ## Testing
 
+### Prerequisites
+
+**Docker must be installed and running** - Tests use Testcontainers for isolated PostgreSQL containers.
+
 ### Running Tests
 
 ```bash
@@ -154,23 +158,56 @@ tests/
   integration/
     health.test.ts    # Health check tests
     auth.test.ts      # Authentication tests
-  setup.ts            # Test setup and configuration
+    todo.test.ts      # Todo CRUD tests
+  helpers/
+    testDb.ts        # Testcontainers helper for database lifecycle
+  setup.ts            # Test setup and configuration (Testcontainers integration)
 ```
+
+### Testcontainers Integration
+
+Tests use **Testcontainers** for isolated PostgreSQL containers:
+
+- **Automatic setup**: Each test suite gets its own isolated PostgreSQL container
+- **Automatic cleanup**: Containers are stopped after tests complete
+- **No interference**: Tests never affect your development or production databases
+- **Automatic migrations**: Drizzle migrations are run automatically on test databases
+- **Database isolation**: Each test suite runs against a fresh database instance
+
+**How it works:**
+
+1. `tests/setup.ts` starts a PostgreSQL container before tests
+2. Sets `DATABASE_URL` environment variable to the container's connection string
+3. Runs Drizzle migrations on the test database
+4. Tests run against the isolated database
+5. Container is stopped and cleaned up after tests
 
 ### Writing Tests
 
-Example test:
+Example test with Testcontainers:
 
 ```typescript
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { buildServer } from '../../src/server.js';
 import type { FastifyInstance } from 'fastify';
+import { resetDatabaseConnections } from '../../src/db/index.js';
+import { cleanTestDatabase, createTestDb } from '../helpers/testDb.js';
 
 describe('Feature Tests', () => {
 	let app: FastifyInstance;
+	let testDb: ReturnType<typeof createTestDb>;
 
 	beforeAll(async () => {
+		// Reset database connections to use test container
+		resetDatabaseConnections();
+		// Build server (DATABASE_URL already set by setup.ts)
 		app = await buildServer();
+		testDb = createTestDb();
+	});
+
+	beforeEach(async () => {
+		// Clean database before each test for isolation
+		await cleanTestDatabase();
 	});
 
 	afterAll(async () => {
@@ -194,8 +231,19 @@ describe('Feature Tests', () => {
 
 - **Vitest** configured in `vitest.config.ts`
 - **Test environment**: Node.js
-- **Setup files**: `tests/setup.ts`
+- **Setup files**: `tests/setup.ts` (runs before all tests)
+- **Timeouts**: 30s for tests, 60s for hooks (to accommodate Testcontainers startup)
 - **Coverage**: v8 provider with HTML, JSON, and text reports
+- **Test isolation**: Each test suite gets its own database container
+
+### Database Connection Handling
+
+The database connection pool uses **lazy initialization** to work seamlessly with Testcontainers:
+
+- Connection pool is created on first access, not at module load time
+- This allows `tests/setup.ts` to set `DATABASE_URL` before the pool is created
+- `resetDatabaseConnections()` utility ensures tests use the test database URL
+- See `src/db/index.ts` for implementation details
 
 ## Using the API
 

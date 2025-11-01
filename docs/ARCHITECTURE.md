@@ -48,12 +48,15 @@ This template follows a layered architecture with Fastify's plugin system for cr
 
 ### Connection Pooling
 
-- Single Pool managed in `src/db/index.ts`
+- Single Pool managed in `src/db/index.ts` with **lazy initialization**
+- Connection pool is created on first access, not at module load time
+- This allows tests to set `DATABASE_URL` before the connection is created
 - Configurable via environment variables:
   - `DB_POOL_MIN` (default: 5) - Minimum connections
   - `DB_POOL_MAX` (default: 20) - Maximum connections
 - Connection timeouts and keepAlive configured
 - Pool error handling for graceful failures
+- `resetDatabaseConnections()` utility for test isolation
 
 ### IDs
 
@@ -98,6 +101,8 @@ This template follows a layered architecture with Fastify's plugin system for cr
 ### Auth Middleware
 
 - Automatically extracts `userId` from `request.user.sub`
+- Uses `preHandler` hook which runs **after** `preValidation` (where JWT verification occurs)
+- This ensures `request.user` is set by `jwtVerify` before extracting `userId`
 - Attaches to `request.userId` for use in handlers
 - Eliminates repetitive user ID extraction code
 
@@ -130,11 +135,13 @@ Located in `src/utils/errorHandler.ts`:
 - Converts errors to structured JSON responses
 - Logs errors with request context (URL, method, request ID)
 - Handles:
+  - **Fastify schema validation errors** (returns 400 with validation details)
   - Custom AppError instances
   - Zod validation errors
   - JWT errors
   - Database errors (PostgreSQL error codes)
   - Generic errors (sanitized in production)
+- Validation errors are checked **first** to ensure proper 400 status codes
 
 ### Error Response Format
 

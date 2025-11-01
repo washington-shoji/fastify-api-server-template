@@ -1,9 +1,9 @@
-import type { FastifySwaggerOptions } from '@fastify/swagger';
+import type { FastifyDynamicSwaggerOptions } from '@fastify/swagger';
 import type { FastifySwaggerUiOptions } from '@fastify/swagger-ui';
 import { env } from '../env.js';
 
-export const swaggerOptions = {
-	mode: 'dynamic',
+export const swaggerOptions: FastifyDynamicSwaggerOptions = {
+	mode: 'dynamic' as const,
 	openapi: {
 		openapi: '3.0.0',
 		info: {
