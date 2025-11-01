@@ -202,7 +202,7 @@ describe('Feature Tests', () => {
 1. **Issue tokens:**
 
    ```bash
-   POST /auth/token
+   POST /v1/auth/token
    {
      "userId": "550e8400-e29b-41d4-a716-446655440000"
    }
@@ -213,7 +213,7 @@ describe('Feature Tests', () => {
 2. **Use protected endpoints:**
 
    ```bash
-   GET /todos
+   GET /v1/todos
    Authorization: Bearer <accessToken>
    ```
 
@@ -221,7 +221,7 @@ describe('Feature Tests', () => {
 
 3. **Refresh tokens:**
    ```bash
-   POST /auth/refresh
+   POST /v1/auth/refresh
    ```
    Uses refresh token from cookie or body.
 

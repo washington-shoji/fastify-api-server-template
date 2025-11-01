@@ -47,7 +47,6 @@ A production-ready, scalable Fastify starter template with comprehensive feature
 
 - RESTful CRUD operations
 - API versioning (/v1/\* routes)
-- Backward compatibility with legacy routes
 - Request/response validation
 - UUID parameter validation
 
@@ -72,11 +71,10 @@ npm run dev         # Start development server
 **Endpoints:**
 
 - Health: `GET http://localhost:3000/health`
-- Issue tokens: `POST http://localhost:3000/auth/token`
-- Refresh token: `POST http://localhost:3000/auth/refresh`
-- Protected: `GET http://localhost:3000/auth/me`
-- Todos: `GET http://localhost:3000/todos` (authenticated)
-- V1 API: `GET http://localhost:3000/v1/todos` (authenticated)
+- Issue tokens: `POST http://localhost:3000/v1/auth/token`
+- Refresh token: `POST http://localhost:3000/v1/auth/refresh`
+- Protected: `GET http://localhost:3000/v1/auth/me`
+- Todos: `GET http://localhost:3000/v1/todos` (authenticated)
 
 ## Scripts
 
@@ -219,14 +217,6 @@ vitest.config.ts         # Test configuration
 - `POST /auth/token` - Issue access & refresh tokens
 - `POST /auth/refresh` - Refresh tokens
 - `GET /auth/me` - Get current user (authenticated)
-
-### Todos (Legacy Routes)
-
-- `POST /todos` - Create todo (authenticated)
-- `GET /todos` - List todos with pagination (authenticated)
-- `GET /todos/:id` - Get todo by ID (authenticated)
-- `PUT /todos/:id` - Update todo (authenticated)
-- `DELETE /todos/:id` - Delete todo (authenticated)
 
 ### Todos (Version 1 API)
 

@@ -5,8 +5,6 @@ import { env } from './env.js';
 import { healthRoutes } from './routes/health.js';
 import dbPlugin from './plugins/db.js';
 import jwtPlugin from './plugins/jwt.js';
-import { authRoutes } from './routes/auth.js';
-import { todoRoutes } from './routes/todo.js';
 import { setupErrorHandler } from './utils/errorHandler.js';
 import { setupAuthMiddleware } from './middlewares/auth.middleware.js';
 import { setupRateLimit } from './middlewares/rateLimit.middleware.js';
@@ -63,10 +61,6 @@ export async function buildServer() {
 	await app.register(dbPlugin);
 	await app.register(jwtPlugin);
 	await app.register(healthRoutes);
-
-	// Legacy routes (backward compatibility - can be removed in future)
-	await app.register(authRoutes);
-	await app.register(todoRoutes);
 
 	// Version 1 API routes
 	const { authV1Routes } = await import('./routes/v1/auth.js');

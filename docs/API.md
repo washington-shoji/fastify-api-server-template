@@ -20,9 +20,9 @@ All protected endpoints require authentication via:
 
 ### Token Lifecycle
 
-1. **Issue tokens**: `POST /auth/token` or `POST /v1/auth/token`
+1. **Issue tokens**: `POST /v1/auth/token`
 2. **Use access token**: Include in `Authorization` header or rely on cookie
-3. **Refresh tokens**: `POST /auth/refresh` or `POST /v1/auth/refresh` when access token expires
+3. **Refresh tokens**: `POST /v1/auth/refresh` when access token expires
 
 ## Health Endpoints
 
@@ -91,7 +91,7 @@ Readiness probe - indicates the application is ready to serve requests (includes
 
 ## Authentication Endpoints
 
-### POST `/auth/token` or `POST /v1/auth/token`
+### POST `/v1/auth/token`
 
 Issue access and refresh tokens for a user.
 
@@ -123,7 +123,7 @@ Issue access and refresh tokens for a user.
 - `400 Bad Request` - Invalid request body
 - `404 Not Found` - User not found
 
-### POST `/auth/refresh` or `POST /v1/auth/refresh`
+### POST `/v1/auth/refresh`
 
 Refresh access and refresh tokens.
 
@@ -152,7 +152,7 @@ Refresh access and refresh tokens.
 
 - `401 Unauthorized` - Invalid or missing refresh token
 
-### GET `/auth/me` or `GET /v1/auth/me`
+### GET `/v1/auth/me`
 
 Get current authenticated user info.
 
@@ -179,7 +179,7 @@ Get current authenticated user info.
 
 All todo endpoints require authentication and are user-scoped. The `user_id` is never exposed to clients.
 
-### POST `/todos` or `POST /v1/todos`
+### POST `/v1/todos`
 
 Create a new todo.
 
@@ -215,7 +215,7 @@ Create a new todo.
 - `400 Bad Request` - Invalid request body or validation errors
 - `401 Unauthorized` - Missing or invalid authentication token
 
-### GET `/todos` or `GET /v1/todos`
+### GET `/v1/todos`
 
 Get all todos for the authenticated user with pagination.
 
@@ -265,7 +265,7 @@ GET /v1/todos?limit=20&cursor=018e5f5d-1234-7890-abcd-123456789abc
 - `400 Bad Request` - Invalid pagination parameters
 - `401 Unauthorized` - Missing or invalid authentication token
 
-### GET `/todos/:id` or `GET /v1/todos/:id`
+### GET `/v1/todos/:id`
 
 Get a specific todo by ID.
 
@@ -296,7 +296,7 @@ Get a specific todo by ID.
 - `401 Unauthorized` - Missing or invalid authentication token
 - `404 Not Found` - Todo not found or not owned by user
 
-### PUT `/todos/:id` or `PUT /v1/todos/:id`
+### PUT `/v1/todos/:id`
 
 Update a todo.
 
@@ -337,7 +337,7 @@ Update a todo.
 - `401 Unauthorized` - Missing or invalid authentication token
 - `404 Not Found` - Todo not found or not owned by user
 
-### DELETE `/todos/:id` or `DELETE /v1/todos/:id`
+### DELETE `/v1/todos/:id`
 
 Delete a todo.
 
