@@ -16,6 +16,8 @@ import { setupRequestIdMiddleware } from './middlewares/requestId.middleware.js'
 import { setupQueryMonitoring } from './utils/queryMonitor.js';
 import { setupSecurityHeaders } from './middlewares/securityHeaders.middleware.js';
 import { setupCSRFProtection } from './middlewares/csrf.middleware.js';
+import { setupETagMiddleware } from './middlewares/etag.middleware.js';
+import compress from '@fastify/compress';
 
 export async function buildServer() {
 	const app = Fastify({
@@ -55,6 +57,9 @@ export async function buildServer() {
 	// Setup query monitoring for performance tracking
 	setupQueryMonitoring(app, env.SLOW_QUERY_THRESHOLD ?? 1000);
 
+	// Setup ETag middleware for HTTP caching
+	setupETagMiddleware(app);
+
 	// Configure CORS based on environment
 	await app.register(cors, {
 		origin: env.CORS_ORIGINS,
@@ -69,6 +74,15 @@ export async function buildServer() {
 			domain: env.COOKIE_DOMAIN,
 		},
 	});
+
+	// Register response compression (gzip, deflate, brotli)
+	if (env.ENABLE_COMPRESSION) {
+		await app.register(compress, {
+			encodings: ['gzip', 'deflate', 'brotli'],
+			// Only compress responses larger than 1KB
+			threshold: 1024,
+		});
+	}
 
 	await app.register(dbPlugin);
 	await app.register(jwtPlugin);

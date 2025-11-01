@@ -78,6 +78,17 @@ const envSchema = z.object({
 		.optional()
 		.transform((val) => val === 'true')
 		.default('false'),
+	// Performance configuration
+	ENABLE_COMPRESSION: z
+		.union([z.literal('true'), z.literal('false')])
+		.optional()
+		.transform((val) => val === 'true')
+		.default('true'),
+	ENABLE_ETAG: z
+		.union([z.literal('true'), z.literal('false')])
+		.optional()
+		.transform((val) => val === 'true')
+		.default('true'),
 });
 
 const parsed = envSchema.safeParse(process.env);

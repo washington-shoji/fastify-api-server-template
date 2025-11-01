@@ -113,6 +113,22 @@ This template follows a layered architecture with Fastify's plugin system for cr
 - Rate limiting per IP address
 - Returns `429 Too Many Requests` when limit exceeded
 
+### Response Compression
+
+- Automatic compression via `@fastify/compress`
+- Supports gzip, deflate, and brotli algorithms
+- Only compresses responses larger than 1KB (configurable threshold)
+- Configurable via `ENABLE_COMPRESSION` environment variable
+- Reduces bandwidth usage and improves response times
+
+### ETag Middleware
+
+- Automatic ETag generation for GET responses
+- Handles If-None-Match header for conditional requests
+- Returns 304 Not Modified when content hasn't changed
+- Configurable via `ENABLE_ETAG` environment variable
+- Reduces bandwidth and improves client-side caching
+
 ## Error Handling
 
 ### Custom Error Classes

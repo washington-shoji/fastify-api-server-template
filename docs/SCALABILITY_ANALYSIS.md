@@ -368,8 +368,17 @@ src/
 ### API ✅ **IMPLEMENTED**
 
 - ✅ Add pagination (cursor-based implemented for large datasets)
-- ⏳ Implement response compression (Future enhancement)
-- ⏳ Add ETags for caching (Future enhancement)
+- ✅ **Response compression** - Gzip, deflate, brotli (`@fastify/compress`)
+  - Automatic compression for responses > 1KB
+  - Configurable via `ENABLE_COMPRESSION` environment variable
+  - Reduces bandwidth usage and improves response times
+  - Supports multiple compression algorithms (gzip, deflate, brotli)
+- ✅ **ETag support** - HTTP caching (`src/middlewares/etag.middleware.ts`)
+  - Automatic ETag generation for GET responses
+  - Handles If-None-Match header for conditional requests
+  - Returns 304 Not Modified when content unchanged
+  - Configurable via `ENABLE_ETAG` environment variable
+  - Reduces bandwidth and improves client-side caching
 - ⏳ Consider GraphQL for flexible queries (Future enhancement)
 
 ---
@@ -570,18 +579,23 @@ src/
   - All tests exit with code 0 on success
 
 - ✅ **Security Enhancements** - Enterprise-grade security features
+
   - Security headers middleware (CSP, HSTS, X-Frame-Options, etc.)
   - CSRF protection with Double Submit Cookie pattern
   - Comprehensive audit logging for security events
   - API key authentication for programmatic access
   - All security features configurable via environment variables
 
+- ✅ **Performance Enhancements** - Response optimization features
+  - Response compression (gzip, deflate, brotli) for responses > 1KB
+  - ETag support for HTTP conditional requests (304 Not Modified)
+  - Automatic compression and caching reduces bandwidth usage
+  - All performance features configurable via environment variables
+
 ### Future Enhancements (Optional)
 
 The codebase is ready for production use. Optional future enhancements include:
 
-- Response compression
-- ETags for caching
 - Advanced monitoring integrations (Sentry, Prometheus, Grafana)
 - OAuth2 support (social authentication with Google, GitHub, etc.)
 - Password reset functionality

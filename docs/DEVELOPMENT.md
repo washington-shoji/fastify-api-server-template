@@ -97,6 +97,29 @@
 
 - `TRUST_PROXY=true/false` - Trust proxy headers
 
+### Security Configuration
+
+- `ENABLE_CSRF=true` - Enable CSRF protection (default: true)
+- `ENABLE_API_KEY_AUTH=false` - Enable API key authentication (default: false)
+
+### Performance Configuration
+
+- `ENABLE_COMPRESSION=true` - Enable response compression (default: true)
+
+  - Automatically compresses responses using gzip, deflate, or brotli
+  - Only compresses responses larger than 1KB
+  - Reduces bandwidth usage and improves response times
+
+- `ENABLE_ETAG=true` - Enable ETag support for HTTP caching (default: true)
+  - Automatically generates ETags for GET responses
+  - Handles conditional requests (If-None-Match header)
+  - Returns 304 Not Modified when content hasn't changed
+  - Reduces bandwidth and improves client-side caching
+
+### Swagger/OpenAPI Configuration
+
+- `ENABLE_SWAGGER=false` - Enable Swagger UI in production (default: false, auto-enabled in dev/test)
+
 ## Database Management
 
 ### Schema Changes

@@ -239,6 +239,8 @@ vitest.config.ts         # Test configuration
 - Transaction support for multi-step operations
 - **Redis caching** with automatic cache invalidation
 - Cache-first strategy with database fallback
+- **Response compression** (gzip, deflate, brotli) for responses > 1KB
+- **ETag support** for HTTP conditional requests and 304 Not Modified responses
 
 ## API Overview
 
