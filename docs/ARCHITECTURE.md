@@ -116,7 +116,7 @@ This template follows a layered architecture with Fastify's plugin system for cr
 ### Response Compression
 
 - Automatic compression via `@fastify/compress`
-- Supports gzip, deflate, and brotli algorithms
+- Supports gzip and deflate algorithms
 - Only compresses responses larger than 1KB (configurable threshold)
 - Configurable via `ENABLE_COMPRESSION` environment variable
 - Reduces bandwidth usage and improves response times

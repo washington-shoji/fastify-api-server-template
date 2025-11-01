@@ -75,10 +75,10 @@ export async function buildServer() {
 		},
 	});
 
-	// Register response compression (gzip, deflate, brotli)
+	// Register response compression (gzip, deflate)
 	if (env.ENABLE_COMPRESSION) {
 		await app.register(compress, {
-			encodings: ['gzip', 'deflate', 'brotli'],
+			encodings: ['gzip', 'deflate'],
 			// Only compress responses larger than 1KB
 			threshold: 1024,
 		});

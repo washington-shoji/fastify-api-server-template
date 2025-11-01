@@ -106,7 +106,7 @@
 
 - `ENABLE_COMPRESSION=true` - Enable response compression (default: true)
 
-  - Automatically compresses responses using gzip, deflate, or brotli
+  - Automatically compresses responses using gzip or deflate
   - Only compresses responses larger than 1KB
   - Reduces bandwidth usage and improves response times
 
