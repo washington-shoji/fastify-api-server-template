@@ -13,9 +13,11 @@ export default defineConfig({
 				'src/server.ts',
 				'**/*.config.ts',
 				'**/*.d.ts',
+				'tests/**',
 			],
 		},
-		testTimeout: 10000,
+		testTimeout: 30000, // Increased for testcontainer startup
 		setupFiles: ['./tests/setup.ts'],
+		hookTimeout: 60000, // Timeout for beforeAll/afterAll hooks (container startup)
 	},
 });
