@@ -13,7 +13,7 @@ import { setupRateLimit } from './middlewares/rateLimit.middleware.js';
 import { setupRequestIdMiddleware } from './middlewares/requestId.middleware.js';
 import { setupQueryMonitoring } from './utils/queryMonitor.js';
 
-async function buildServer() {
+export async function buildServer() {
 	const app = Fastify({
 		logger: {
 			level: process.env.LOG_LEVEL || 'info',
