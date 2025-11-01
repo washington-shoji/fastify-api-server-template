@@ -326,6 +326,21 @@ See `docs/DEPLOYMENT.md` for deployment checklist and configuration.
 - `docs/DEPLOYMENT.md` - Deployment guide
 - `docs/SCALABILITY_ANALYSIS.md` - Scalability analysis and improvements
 
+## Disclaimer
+
+**This software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.**
+
+**USE AT YOUR OWN RISK**
+
+By using this template repository, you acknowledge that:
+
+- The software is provided without any guarantees or warranties
+- You are solely responsible for testing, validating, and securing any deployment
+- The maintainers/authors are not responsible for any security vulnerabilities, bugs, data loss, or other issues that may arise from using this template
+- You should review and audit all code before using it in production
+- You should implement appropriate security measures, backups, and monitoring for your specific use case
+- Any modifications or usage of this template is at your own discretion and risk
+
 ## License
 
 Private/Internal use
