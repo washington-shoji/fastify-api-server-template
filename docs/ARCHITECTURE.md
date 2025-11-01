@@ -14,8 +14,11 @@ This template follows a layered architecture with Fastify's plugin system for cr
 - `src/services/` contain business logic; they orchestrate repositories and apply domain rules.
 - `src/repositories/` encapsulate data access using Drizzle ORM; they map between domain and database.
 - `src/domain/` contains domain schemas (Zod validation) and types.
-- `src/utils/` contains utility functions (errors, pagination, transactions, sanitization, query monitoring).
+- `src/utils/` contains utility functions (errors, pagination, transactions, sanitization, query monitoring, schemas).
 - `src/validators/` contains parameter validators for routes.
+- `src/dto/` contains Data Transfer Objects for request/response transformation.
+- `src/di/` contains Dependency Injection container (optional pattern).
+- `src/config/` contains configuration files (Swagger/OpenAPI).
 - `src/types/fastify.d.ts` augments Fastify types for custom decorators and request properties.
 
 ## Request Flow
@@ -27,11 +30,12 @@ This template follows a layered architecture with Fastify's plugin system for cr
 5. **Authentication** (for protected routes) - `preValidation: [app.authenticate]` verifies JWT
 6. **Auth Middleware** (`setupAuthMiddleware`) - Extracts `userId` from `request.user.sub`
 7. **Route Handler** → Controller
-8. **Controller** - Validates input with Zod schemas, handles errors, calls service
+8. **Controller** - Validates input with Zod schemas, transforms DTO → domain model, handles errors, calls service
 9. **Service** - Applies business logic, validates domain rules, calls repository
-10. **Repository** - Uses Drizzle ORM to query database with full type safety
-11. **Response flows back**: Repository → Service → Controller → Route → Client
+10. **Repository** - Checks cache first, uses Drizzle ORM to query database with full type safety, updates cache
+11. **Response flows back**: Repository → Service → Controller (transforms domain → DTO) → Route → Client
 12. **Query Monitoring** - Logs slow queries (>threshold)
+13. **Cache** - Automatic caching with invalidation on write operations
 
 ## Database & ORM
 
@@ -248,6 +252,29 @@ Located in `src/utils/queryMonitor.ts`:
 - Routes defined in `src/routes/v1/`
 - All endpoints require version prefix for safety and clarity
 
+## API Documentation
+
+### Swagger/OpenAPI
+
+Located in `src/config/swagger.ts` and `src/utils/schemas.ts`:
+
+- **Auto-Generated**: Documentation generated from Fastify schemas
+- **Swagger UI**: Interactive API explorer at `/docs` endpoint
+- **Comprehensive Schemas**: All endpoints documented with:
+  - Request/response schemas
+  - Authentication requirements
+  - Error responses
+  - Examples
+- **Security Schemes**: Bearer token and cookie authentication documented
+- **Availability**: Enabled in development/test, or set `ENABLE_SWAGGER=true` in production
+
+### Usage
+
+- Visit `http://localhost:3000/docs` for interactive API documentation
+- Try endpoints directly from Swagger UI
+- View request/response schemas
+- Test authentication flows
+
 ## Logging
 
 ### Structured Logging
@@ -298,6 +325,7 @@ Located in `src/utils/queryMonitor.ts`:
 
 - HTTP concerns (request/response, status codes)
 - Input validation (Zod schemas)
+- **DTO transformation** (Request DTO → Domain Model → Response DTO)
 - Error handling (throw custom errors)
 - Response formatting
 
@@ -311,9 +339,11 @@ Located in `src/utils/queryMonitor.ts`:
 ### Repositories
 
 - Data access only
+- **Caching** (check cache first, update cache on writes)
 - Drizzle ORM queries
 - Database mapping
 - User-scoped queries (automatic filtering by `user_id`)
+- Cache invalidation on write operations
 
 ### Domain
 
@@ -321,6 +351,13 @@ Located in `src/utils/queryMonitor.ts`:
 - Zod validation schemas
 - Type definitions
 - No business logic
+
+### DTO
+
+- **Data Transfer Objects** for API contract
+- Request/response transformation functions
+- Separate from domain models
+- Prevents sensitive data exposure
 
 ## Security Features
 
@@ -393,11 +430,39 @@ Located in `src/utils/queryMonitor.ts`:
 - Read replicas support (future)
 - Query optimization and monitoring
 
-### Caching (Ready for Implementation)
+### Caching
 
-- Redis configuration in environment variables
-- Infrastructure ready for caching layer
-- Can be added for frequently accessed data
+Located in `src/plugins/redis.ts`:
+
+- **Redis Plugin**: Comprehensive caching service with connection management
+- **Cache Service**: Provides `get`, `set`, `del`, `delPattern`, `exists`, `flush`, `getOrSet`
+- **Automatic Caching**: Uses `getOrSet` pattern for cache-first strategy
+- **Cache Invalidation**: Automatic invalidation on create/update/delete operations
+- **User-Scoped Keys**: Cache keys include `userId` for security (e.g., `todo:${userId}:${id}`)
+- **Graceful Fallback**: No-op cache service when Redis unavailable
+- **Configuration**:
+  - `REDIS_URL` or `REDIS_HOST`/`REDIS_PORT` for connection
+  - `REDIS_PASSWORD` for authentication
+  - `REDIS_TTL` for default cache expiration (default: 3600 seconds)
+
+### Usage Example
+
+```typescript
+// In repository
+const cacheKey = `todo:${userId}:${id}`;
+return app.cache.getOrSet(
+  cacheKey,
+  async () => {
+    // Database query
+    return await app.db.select()...;
+  },
+  3600 // TTL: 1 hour
+);
+
+// Cache invalidation on write
+await app.cache.del(`todo:${userId}:${id}`);
+await app.cache.delPattern(`todo:${userId}:*`);
+```
 
 ## Testing
 

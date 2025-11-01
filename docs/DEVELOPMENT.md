@@ -86,10 +86,12 @@
 ### Redis Configuration (Optional)
 
 - `REDIS_URL` - Redis connection URL (for caching)
-- `REDIS_HOST` - Redis host
-- `REDIS_PORT` - Redis port
-- `REDIS_PASSWORD` - Redis password
-- `REDIS_TTL` - Redis default TTL in seconds
+- `REDIS_HOST` - Redis host (if not using REDIS_URL)
+- `REDIS_PORT` - Redis port (default: 6379)
+- `REDIS_PASSWORD` - Redis password (optional)
+- `REDIS_TTL` - Redis default TTL in seconds (default: 3600)
+
+**Note:** If Redis is not configured, the application will use a no-op cache service (works without Redis).
 
 ### Server Configuration
 
@@ -687,6 +689,91 @@ Check application logs for:
 - Slow query warnings
 - Rate limit information
 
+## Using Caching
+
+### Redis Caching
+
+The application includes Redis caching for frequently accessed data:
+
+```typescript
+// In repository - automatic caching
+const cacheKey = `todo:${userId}:${id}`;
+return app.cache.getOrSet(
+  cacheKey,
+  async () => {
+    // Database query
+    return await app.db.select()...;
+  },
+  3600 // TTL: 1 hour
+);
+
+// Cache invalidation on write
+await app.cache.del(`todo:${userId}:${id}`);
+await app.cache.delPattern(`todo:${userId}:*`);
+```
+
+**Cache Key Pattern**: `{resource}:{userId}:{id}` ensures user-scoped caching for security.
+
+## Using DTOs
+
+### Data Transfer Objects
+
+DTOs separate API contract from domain models:
+
+```typescript
+// In controller
+import { fromCreateTodoDTO, toTodoResponseDTO } from '../dto/todo.dto.js';
+
+// Transform request DTO to domain model
+const createData = fromCreateTodoDTO(parsed.data as CreateTodoDTO);
+const todo = await todoService.createTodo(createData, userId);
+
+// Transform domain model to response DTO
+const responseDTO = toTodoResponseDTO(todo);
+return reply.code(201).send(responseDTO);
+```
+
+**Benefits:**
+
+- Explicit API contract
+- Prevents sensitive data exposure
+- Easier API versioning
+- Type-safe transformations
+
+## Using DI Container (Optional)
+
+### Dependency Injection
+
+The template includes an optional DI container:
+
+```typescript
+// In server.ts
+import { registerServices } from './di/services.js';
+registerServices(app);
+
+// In routes
+import { getAuthController } from '../di/services.js';
+const controller = getAuthController();
+```
+
+**Note:** Manual wiring remains the default pattern for simplicity. DI container is available for better testability.
+
+## API Documentation
+
+### Swagger UI
+
+Interactive API documentation is available at `/docs` endpoint:
+
+- Visit `http://localhost:3000/docs` in development
+- Try endpoints directly from the UI
+- View request/response schemas
+- Test authentication flows
+
+**Configuration:**
+
+- Enabled automatically in development/test
+- Set `ENABLE_SWAGGER=true` to enable in production
+
 ## Best Practices
 
 1. **Always use transactions** for multi-step operations
@@ -699,3 +786,6 @@ Check application logs for:
 8. **Use type-safe queries** with Drizzle ORM
 9. **Sanitize inputs** beyond Zod validation
 10. **Monitor query performance** regularly
+11. **Use caching** for frequently accessed data
+12. **Transform data via DTOs** for clear API contracts
+13. **Document endpoints** with Swagger schemas

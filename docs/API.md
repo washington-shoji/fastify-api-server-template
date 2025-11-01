@@ -2,6 +2,20 @@
 
 Base URL: `http://localhost:3000`
 
+## Interactive Documentation
+
+**Swagger UI**: Visit `http://localhost:3000/docs` for interactive API documentation.
+
+The Swagger UI provides:
+
+- Complete endpoint documentation
+- Request/response schemas
+- Try-it-out functionality
+- Authentication testing
+- Example requests and responses
+
+**Note**: Swagger UI is automatically enabled in development/test environments. Set `ENABLE_SWAGGER=true` to enable in production.
+
 ## API Versioning
 
 This API uses versioning to handle breaking changes gracefully:

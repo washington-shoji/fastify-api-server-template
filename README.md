@@ -4,11 +4,12 @@ A production-ready, scalable Fastify starter template with comprehensive feature
 
 - **Security**: JWT authentication (access + refresh tokens), rate limiting, CORS, input sanitization
 - **Database**: PostgreSQL with Drizzle ORM, connection pooling, migrations
-- **Scalability**: Pagination, transactions, query monitoring, health checks
+- **Scalability**: Pagination, transactions, query monitoring, health checks, Redis caching
 - **Observability**: Structured logging with request IDs, error tracking
-- **API**: RESTful endpoints with versioning support (/v1/\*)
+- **API**: RESTful endpoints with versioning support (/v1/\*), Swagger/OpenAPI docs
 - **Testing**: Vitest infrastructure with integration tests
 - **Type Safety**: Full TypeScript support with type augmentation
+- **Architecture**: DTO layer, optional DI container, clean separation of concerns
 
 ## Features
 
@@ -34,6 +35,8 @@ A production-ready, scalable Fastify starter template with comprehensive feature
 - Query performance monitoring
 - Connection pool configuration
 - Rate limiting per IP
+- **Redis caching** for frequently accessed data
+- Cache invalidation strategies
 
 ### Observability
 
@@ -49,6 +52,8 @@ A production-ready, scalable Fastify starter template with comprehensive feature
 - API versioning (/v1/\* routes)
 - Request/response validation
 - UUID parameter validation
+- **Auto-generated Swagger/OpenAPI documentation** at `/docs` endpoint
+- Comprehensive API schemas and examples
 
 ### Developer Experience
 
@@ -57,6 +62,9 @@ A production-ready, scalable Fastify starter template with comprehensive feature
 - Type-safe repository pattern
 - Business logic separation (Services)
 - Testing infrastructure (Vitest)
+- **DTO layer** for request/response transformation
+- **Optional DI container** for dependency management
+- Swagger UI for interactive API exploration
 
 ## Quick Start
 
@@ -71,6 +79,7 @@ npm run dev         # Start development server
 **Endpoints:**
 
 - Health: `GET http://localhost:3000/health`
+- API Documentation: `GET http://localhost:3000/docs` (Swagger UI)
 - Issue tokens: `POST http://localhost:3000/v1/auth/token`
 - Refresh token: `POST http://localhost:3000/v1/auth/refresh`
 - Protected: `GET http://localhost:3000/v1/auth/me`
@@ -114,7 +123,12 @@ npm run dev         # Start development server
 - `LOG_LEVEL=info` - Log level (fatal/error/warn/info/debug/trace)
 - `SLOW_QUERY_THRESHOLD=1000` - Slow query threshold in milliseconds
 - `REDIS_URL` - Redis connection URL (optional, for caching)
+- `REDIS_HOST` - Redis host (if not using REDIS_URL)
+- `REDIS_PORT` - Redis port (default: 6379)
+- `REDIS_PASSWORD` - Redis password (optional)
+- `REDIS_TTL` - Default cache TTL in seconds (default: 3600)
 - `TRUST_PROXY` - Trust proxy headers (true/false)
+- `ENABLE_SWAGGER` - Enable Swagger in production (default: false, auto-enabled in dev/test)
 
 ## Project Structure
 
@@ -131,6 +145,9 @@ src/
   plugins/
     db.ts                # Database plugin
     jwt.ts               # JWT plugin with access/refresh token support
+    redis.ts             # Redis caching plugin
+  config/
+    swagger.ts           # Swagger/OpenAPI configuration
   middlewares/
     auth.middleware.ts   # Automatic user ID extraction
     rateLimit.middleware.ts  # Rate limiting configuration
@@ -143,7 +160,14 @@ src/
       auth.ts
       todo.ts
   domain/                # Domain schemas (Zod validation)
+  dto/                   # Data Transfer Objects (request/response)
+    auth.dto.ts         # Auth DTOs and transformation functions
+    todo.dto.ts         # Todo DTOs and transformation functions
+  di/                    # Dependency Injection (optional)
+    container.ts        # DI container implementation
+    services.ts          # Service registration
   utils/
+    schemas.ts          # JSON schemas for Swagger documentation
     errors.ts            # Custom error classes
     errorHandler.ts      # Global error handler
     pagination.ts        # Pagination utilities
@@ -176,10 +200,11 @@ vitest.config.ts         # Test configuration
 3. Authentication: JWT verification (`app.authenticate`)
 4. Auth middleware: Extract `userId` from token
 5. Route handler → Controller
-6. Controller: Validate input, call Service
+6. Controller: Validate input (Zod), transform DTO → domain model, call Service
 7. Service: Business logic, call Repository
-8. Repository: Drizzle ORM queries
-9. Response flows back through layers
+8. Repository: Check cache, use Drizzle ORM queries, update cache
+9. Controller: Transform domain model → response DTO
+10. Response flows back through layers
 
 ### Error Handling
 
@@ -203,6 +228,8 @@ vitest.config.ts         # Test configuration
 - Cursor-based pagination
 - Query monitoring and slow query detection
 - Transaction support for multi-step operations
+- **Redis caching** with automatic cache invalidation
+- Cache-first strategy with database fallback
 
 ## API Overview
 
@@ -232,6 +259,20 @@ vitest.config.ts         # Test configuration
 - `cursor` (optional) - UUID cursor for pagination
 
 **Note:** `user_id` is never exposed to clients. User ownership is determined from authentication context.
+
+## API Documentation
+
+Interactive API documentation is available at:
+
+- **Swagger UI**: `http://localhost:3000/docs` (development/test only, or set `ENABLE_SWAGGER=true`)
+
+The Swagger UI provides:
+
+- Complete API endpoint documentation
+- Request/response schemas
+- Try-it-out functionality
+- Authentication testing
+- Example requests and responses
 
 ## Testing
 

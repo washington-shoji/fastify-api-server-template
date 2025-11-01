@@ -81,11 +81,20 @@ Ensure all required environment variables are set:
 #### Redis Configuration (Optional)
 
 - `REDIS_URL=redis://localhost:6379` - Redis connection URL (if using caching)
+- `REDIS_HOST` - Redis host (if not using REDIS_URL)
+- `REDIS_PORT` - Redis port (default: 6379)
 - `REDIS_PASSWORD` - Redis password (if required)
+- `REDIS_TTL=3600` - Default cache TTL in seconds (default: 1 hour)
+
+**Note:** If Redis is not configured, the application will use a no-op cache service and continue to function normally.
 
 #### Proxy Configuration
 
 - `TRUST_PROXY=true` - Trust proxy headers (if behind reverse proxy)
+
+#### Swagger Configuration
+
+- `ENABLE_SWAGGER=false` - Enable Swagger UI in production (default: false, auto-enabled in dev/test)
 
 ## Running the Application
 
