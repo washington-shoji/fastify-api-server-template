@@ -34,9 +34,12 @@ All protected endpoints require authentication via:
 
 ### Token Lifecycle
 
-1. **Issue tokens**: `POST /v1/auth/token`
+1. **Register/Login**: `POST /v1/auth/register` or `POST /v1/auth/login` to get tokens
 2. **Use access token**: Include in `Authorization` header or rely on cookie
 3. **Refresh tokens**: `POST /v1/auth/refresh` when access token expires
+4. **Logout**: `POST /v1/auth/logout` to clear cookies
+
+**Note**: The `/v1/auth/token` endpoint is also available for issuing tokens when you already have a user ID (useful for admin operations or service-to-service authentication).
 
 ## Health Endpoints
 
@@ -104,6 +107,88 @@ Readiness probe - indicates the application is ready to serve requests (includes
 ```
 
 ## Authentication Endpoints
+
+### POST `/v1/auth/register`
+
+Register a new user.
+
+**Body:**
+
+```json
+{
+	"user_name": "johndoe",
+	"email": "john@example.com",
+	"password": "securepassword123"
+}
+```
+
+**Response:** `201 Created`
+
+```json
+{
+	"accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+	"refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+- Creates a new user with hashed password
+- Automatically issues tokens after successful registration
+- Sets `access_token` and `refresh_token` as httpOnly cookies
+- Username must be unique (1-255 characters)
+- Email must be unique and valid format
+- Password must be at least 8 characters
+
+**Errors:**
+
+- `400 Bad Request` - Invalid request body, duplicate email, or duplicate username
+
+### POST `/v1/auth/login`
+
+Login with email/username and password.
+
+**Body:**
+
+```json
+{
+	"identifier": "john@example.com",
+	"password": "securepassword123"
+}
+```
+
+**Response:** `200 OK`
+
+```json
+{
+	"accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+	"refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+- `identifier` can be either email or username
+- Validates password against hashed password in database
+- Sets `access_token` and `refresh_token` as httpOnly cookies
+- Access token expires in 15 minutes (default)
+- Refresh token expires in 7 days (default)
+
+**Errors:**
+
+- `400 Bad Request` - Invalid request body
+- `401 Unauthorized` - Invalid credentials (wrong password or user not found)
+
+### POST `/v1/auth/logout`
+
+Logout and clear authentication cookies.
+
+**Response:** `200 OK`
+
+```json
+{
+	"message": "Logged out successfully"
+}
+```
+
+- Clears `access_token` and `refresh_token` cookies
+- No authentication required
 
 ### POST `/v1/auth/token`
 

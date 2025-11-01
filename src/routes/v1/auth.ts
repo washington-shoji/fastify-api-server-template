@@ -3,6 +3,8 @@ import { createUserRepository } from '../../repositories/userRepository.js';
 import { createAuthService } from '../../services/authService.js';
 import { createAuthController } from '../../controllers/authController.js';
 import {
+	registerSchema,
+	loginSchema,
 	issueTokenSchema,
 	tokenResponseSchema,
 	refreshTokenSchema,
@@ -18,8 +20,67 @@ export async function authV1Routes(app: FastifyInstance) {
 	const repo = createUserRepository(app);
 	const service = createAuthService(app, {
 		getUserById: (id) => repo.getById(id),
+		getUserByEmail: (email) => repo.getByEmail(email),
+		getUserByUserName: (userName) => repo.getByUserName(userName),
+		createUser: (data) => repo.create(data),
 	});
 	const controller = createAuthController(app, service);
+
+	app.post(
+		'/v1/auth/register',
+		{
+			schema: {
+				description: 'Register a new user',
+				tags: ['auth'],
+				body: registerSchema,
+				response: {
+					201: tokenResponseSchema,
+					400: errorResponseSchema,
+				},
+			},
+		},
+		controller.registerHandler
+	);
+
+	app.post(
+		'/v1/auth/login',
+		{
+			schema: {
+				description: 'Login with email/username and password',
+				tags: ['auth'],
+				body: loginSchema,
+				response: {
+					200: tokenResponseSchema,
+					400: errorResponseSchema,
+					401: errorResponseSchema,
+				},
+			},
+		},
+		controller.loginHandler
+	);
+
+	app.post(
+		'/v1/auth/logout',
+		{
+			schema: {
+				description: 'Logout and clear authentication cookies',
+				tags: ['auth'],
+				response: {
+					200: {
+						type: 'object',
+						properties: {
+							message: {
+								type: 'string',
+								description: 'Success message',
+							},
+						},
+						required: ['message'],
+					},
+				},
+			},
+		},
+		controller.logoutHandler
+	);
 
 	app.post(
 		'/v1/auth/token',

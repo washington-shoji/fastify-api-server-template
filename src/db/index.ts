@@ -34,8 +34,36 @@ function getPool(): Pool {
 
 		// Handle pool errors
 		poolInstance.on('error', (err) => {
+			// Suppress connection termination errors during test cleanup
+			// These are expected when test containers shut down
+			const isConnectionTerminationError =
+				err &&
+				typeof err === 'object' &&
+				'message' in err &&
+				typeof err.message === 'string' &&
+				(err.message.includes(
+					'terminating connection due to administrator command'
+				) ||
+					err.message.includes('57P01'));
+
+			if (isConnectionTerminationError) {
+				// Silently ignore during tests (expected during container shutdown)
+				if (
+					process.env.NODE_ENV === 'test' ||
+					typeof process.env.VITEST !== 'undefined'
+				) {
+					return;
+				}
+			}
+
 			console.error('Unexpected error on idle client', err);
-			process.exit(-1);
+			// Don't exit process during tests (test containers may close connections)
+			if (
+				process.env.NODE_ENV !== 'test' &&
+				typeof process.env.VITEST === 'undefined'
+			) {
+				process.exit(-1);
+			}
 		});
 	}
 	return poolInstance;
@@ -88,6 +116,23 @@ export function resetDatabaseConnections(): void {
 		poolInstance.end().catch(() => {
 			// Ignore errors during cleanup
 		});
+	}
+	poolInstance = null;
+	dbInstance = null;
+}
+
+/**
+ * Close all database connections gracefully
+ * Useful for test cleanup before container shutdown
+ */
+export async function closeDatabaseConnections(): Promise<void> {
+	if (poolInstance && !poolInstance.ended) {
+		try {
+			await poolInstance.end();
+		} catch (error) {
+			// Ignore errors during cleanup (container may already be closing)
+			console.warn('Error closing database pool during cleanup:', error);
+		}
 	}
 	poolInstance = null;
 	dbInstance = null;

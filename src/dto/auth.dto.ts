@@ -3,6 +3,17 @@
  * DTOs represent the API contract for authentication endpoints
  */
 
+export interface RegisterDTO {
+	user_name: string;
+	email: string;
+	password: string;
+}
+
+export interface LoginDTO {
+	identifier: string; // email or username
+	password: string;
+}
+
 export interface IssueTokenDTO {
 	userId: string;
 	email?: string;
@@ -39,6 +50,34 @@ export function toUserInfoDTO(payload: {
 		email: payload.email || null,
 		iat: payload.iat,
 		exp: payload.exp,
+	};
+}
+
+/**
+ * Transform RegisterDTO to domain format
+ */
+export function fromRegisterDTO(dto: RegisterDTO): {
+	user_name: string;
+	email: string;
+	password: string;
+} {
+	return {
+		user_name: dto.user_name,
+		email: dto.email,
+		password: dto.password,
+	};
+}
+
+/**
+ * Transform LoginDTO to domain format
+ */
+export function fromLoginDTO(dto: LoginDTO): {
+	identifier: string;
+	password: string;
+} {
+	return {
+		identifier: dto.identifier,
+		password: dto.password,
 	};
 }
 

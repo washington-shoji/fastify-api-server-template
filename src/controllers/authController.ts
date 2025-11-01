@@ -5,6 +5,8 @@ import type { createAuthService } from '../services/authService.js';
 import {
 	toUserInfoDTO,
 	fromIssueTokenDTO,
+	fromRegisterDTO,
+	fromLoginDTO,
 	type TokenResponseDTO,
 } from '../dto/auth.dto.js';
 
@@ -12,27 +14,12 @@ export function createAuthController(
 	app: FastifyInstance,
 	authService: ReturnType<typeof createAuthService>
 ) {
-	const loginBodySchema = z.object({
-		userId: z.string().min(1),
-		email: z.string().email().optional(),
-	});
-
-	async function issueTokenHandler(
-		request: FastifyRequest,
-		reply: FastifyReply
-	) {
-		const parsed = loginBodySchema.safeParse(request.body);
-		if (!parsed.success)
-			return reply.code(400).send({ message: 'Invalid body' });
-
-		// Transform DTO to domain format
-		const { userId } = fromIssueTokenDTO({
-			userId: parsed.data.userId,
-			email: parsed.data.email,
-		});
-
-		const { accessToken, refreshToken } = await authService.issueTokens(userId);
-
+	// Helper function to set auth cookies
+	const setAuthCookies = (
+		reply: FastifyReply,
+		accessToken: string,
+		refreshToken: string
+	) => {
 		const commonCookie = {
 			httpOnly: true,
 			sameSite: 'lax' as const,
@@ -50,6 +37,113 @@ export function createAuthController(
 				...commonCookie,
 				maxAge: 7 * 24 * 60 * 60,
 			});
+	};
+
+	// Helper function to clear auth cookies
+	const clearAuthCookies = (reply: FastifyReply) => {
+		const commonCookie = {
+			httpOnly: true,
+			sameSite: 'lax' as const,
+			secure: env.COOKIE_SECURE === 'true',
+			domain: env.COOKIE_DOMAIN,
+			path: '/',
+		};
+
+		reply
+			.clearCookie('access_token', commonCookie)
+			.clearCookie('refresh_token', commonCookie);
+	};
+
+	const registerSchema = z.object({
+		user_name: z.string().min(1).max(255),
+		email: z.string().email(),
+		password: z.string().min(8),
+	});
+
+	const loginSchema = z.object({
+		identifier: z.string().min(1),
+		password: z.string().min(1),
+	});
+
+	const loginBodySchema = z.object({
+		userId: z.string().min(1),
+		email: z.string().email().optional(),
+	});
+
+	async function registerHandler(request: FastifyRequest, reply: FastifyReply) {
+		const parsed = registerSchema.safeParse(request.body);
+		if (!parsed.success)
+			return reply.code(400).send({ message: 'Invalid body' });
+
+		// Transform DTO to domain format
+		const data = fromRegisterDTO({
+			user_name: parsed.data.user_name,
+			email: parsed.data.email,
+			password: parsed.data.password,
+		});
+
+		const { accessToken, refreshToken } = await authService.register(data);
+
+		setAuthCookies(reply, accessToken, refreshToken);
+
+		// Transform to response DTO
+		const responseDTO: TokenResponseDTO = {
+			accessToken,
+			refreshToken,
+		};
+
+		return reply.code(201).send(responseDTO);
+	}
+
+	async function loginHandler(request: FastifyRequest, reply: FastifyReply) {
+		const parsed = loginSchema.safeParse(request.body);
+		if (!parsed.success)
+			return reply.code(400).send({ message: 'Invalid body' });
+
+		// Transform DTO to domain format
+		const { identifier, password } = fromLoginDTO({
+			identifier: parsed.data.identifier,
+			password: parsed.data.password,
+		});
+
+		const { accessToken, refreshToken } = await authService.login(
+			identifier,
+			password
+		);
+
+		setAuthCookies(reply, accessToken, refreshToken);
+
+		// Transform to response DTO
+		const responseDTO: TokenResponseDTO = {
+			accessToken,
+			refreshToken,
+		};
+
+		return responseDTO;
+	}
+
+	async function logoutHandler(request: FastifyRequest, reply: FastifyReply) {
+		clearAuthCookies(reply);
+		return reply.code(200).send({ message: 'Logged out successfully' });
+	}
+
+	async function issueTokenHandler(
+		request: FastifyRequest,
+		reply: FastifyReply
+	) {
+		const parsed = loginBodySchema.safeParse(request.body);
+		if (!parsed.success)
+			return reply.code(400).send({ message: 'Invalid body' });
+
+		// Transform DTO to domain format
+		const { userId } = fromIssueTokenDTO({
+			userId: parsed.data.userId,
+			email: parsed.data.email,
+		});
+
+		const { accessToken, refreshToken } = await authService.issueTokens(userId);
+
+		setAuthCookies(reply, accessToken, refreshToken);
 
 		// Transform to response DTO
 		const responseDTO: TokenResponseDTO = {
@@ -76,23 +170,7 @@ export function createAuthController(
 			token
 		);
 
-		const commonCookie = {
-			httpOnly: true,
-			sameSite: 'lax' as const,
-			secure: env.COOKIE_SECURE === 'true',
-			domain: env.COOKIE_DOMAIN,
-			path: '/',
-		};
-
-		reply
-			.setCookie('access_token', accessToken, {
-				...commonCookie,
-				maxAge: 60 * 60,
-			})
-			.setCookie('refresh_token', refreshToken, {
-				...commonCookie,
-				maxAge: 7 * 24 * 60 * 60,
-			});
+		setAuthCookies(reply, accessToken, refreshToken);
 
 		// Transform to response DTO
 		const responseDTO: TokenResponseDTO = {
@@ -118,5 +196,12 @@ export function createAuthController(
 		return { user: userDTO };
 	}
 
-	return { issueTokenHandler, refreshHandler, meHandler };
+	return {
+		registerHandler,
+		loginHandler,
+		logoutHandler,
+		issueTokenHandler,
+		refreshHandler,
+		meHandler,
+	};
 }

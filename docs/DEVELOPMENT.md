@@ -173,6 +173,7 @@ Tests use **Testcontainers** for isolated PostgreSQL containers:
 - **No interference**: Tests never affect your development or production databases
 - **Automatic migrations**: Drizzle migrations are run automatically on test databases
 - **Database isolation**: Each test suite runs against a fresh database instance
+- **CI/CD safe**: Connection termination errors during cleanup are suppressed (prevents false failures)
 
 **How it works:**
 
@@ -180,7 +181,13 @@ Tests use **Testcontainers** for isolated PostgreSQL containers:
 2. Sets `DATABASE_URL` environment variable to the container's connection string
 3. Runs Drizzle migrations on the test database
 4. Tests run against the isolated database
-5. Container is stopped and cleaned up after tests
+5. Database connections are gracefully closed before container shutdown
+6. Container is stopped and cleaned up after tests
+7. Connection termination errors are suppressed (expected during container shutdown)
+
+**CI/CD Compatibility:**
+
+The test setup includes error suppression for expected connection termination errors that occur when test containers shut down. These errors are safely ignored and won't cause CI/CD pipelines to fail. All tests exit with code 0 on success.
 
 ### Writing Tests
 
@@ -249,18 +256,32 @@ The database connection pool uses **lazy initialization** to work seamlessly wit
 
 ### Authentication Flow
 
-1. **Issue tokens:**
+1. **Register a new user:**
 
    ```bash
-   POST /v1/auth/token
+   POST /v1/auth/register
    {
-     "userId": "550e8400-e29b-41d4-a716-446655440000"
+     "user_name": "johndoe",
+     "email": "john@example.com",
+     "password": "securepassword123"
+   }
+   ```
+
+   Returns `accessToken` and `refreshToken`, also sets cookies. User is automatically logged in.
+
+2. **Login (alternative to registration):**
+
+   ```bash
+   POST /v1/auth/login
+   {
+     "identifier": "john@example.com",  # or username
+     "password": "securepassword123"
    }
    ```
 
    Returns `accessToken` and `refreshToken`, also sets cookies.
 
-2. **Use protected endpoints:**
+3. **Use protected endpoints:**
 
    ```bash
    GET /v1/todos
@@ -269,11 +290,28 @@ The database connection pool uses **lazy initialization** to work seamlessly wit
 
    Or rely on `access_token` cookie automatically.
 
-3. **Refresh tokens:**
+4. **Refresh tokens:**
+
    ```bash
    POST /v1/auth/refresh
    ```
+
    Uses refresh token from cookie or body.
+
+5. **Logout:**
+   ```bash
+   POST /v1/auth/logout
+   ```
+   Clears authentication cookies.
+
+**Alternative: Issue tokens directly (for admin/service-to-service):**
+
+```bash
+POST /v1/auth/token
+{
+  "userId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
 
 ### Example: Create Todo
 

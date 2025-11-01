@@ -51,8 +51,14 @@ describe('Todo Endpoints', () => {
 	});
 
 	afterAll(async () => {
+		// Close Fastify server (this will trigger onClose hooks, including DB pool cleanup)
 		if (app) {
-			await app.close();
+			try {
+				await app.close();
+			} catch (error) {
+				// Ignore errors during cleanup
+				console.warn('Error closing Fastify app:', error);
+			}
 		}
 	});
 

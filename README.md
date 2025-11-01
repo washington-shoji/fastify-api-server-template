@@ -15,7 +15,11 @@ A production-ready, scalable Fastify starter template with comprehensive feature
 
 ### Security & Authentication
 
+- User registration and login with password hashing (bcryptjs)
 - JWT-based authentication with separate access/refresh token secrets
+- Password-based authentication (email/username + password)
+- Automatic token issuance on registration and login
+- Logout endpoint to clear authentication cookies
 - Rate limiting middleware
 - CORS configuration (environment-based)
 - Input sanitization utilities
@@ -61,7 +65,9 @@ A production-ready, scalable Fastify starter template with comprehensive feature
 - Global error handler with custom error classes
 - Type-safe repository pattern
 - Business logic separation (Services)
-- Testing infrastructure (Vitest)
+- Testing infrastructure (Vitest with Testcontainers)
+- **Testcontainers** for isolated integration tests (no database interference)
+- **CI/CD safe** - Connection termination errors suppressed during cleanup
 - **DTO layer** for request/response transformation
 - **Optional DI container** for dependency management
 - Swagger UI for interactive API exploration
@@ -80,6 +86,9 @@ npm run dev         # Start development server
 
 - Health: `GET http://localhost:3000/health`
 - API Documentation: `GET http://localhost:3000/docs` (Swagger UI)
+- Register: `POST http://localhost:3000/v1/auth/register`
+- Login: `POST http://localhost:3000/v1/auth/login`
+- Logout: `POST http://localhost:3000/v1/auth/logout`
 - Issue tokens: `POST http://localhost:3000/v1/auth/token`
 - Refresh token: `POST http://localhost:3000/v1/auth/refresh`
 - Protected: `GET http://localhost:3000/v1/auth/me`

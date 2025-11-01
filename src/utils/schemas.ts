@@ -107,6 +107,46 @@ export const todoListResponseSchema = {
 	required: ['items', 'hasMore', 'count'],
 } as const;
 
+export const registerSchema = {
+	type: 'object',
+	properties: {
+		user_name: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 255,
+			description: 'Username',
+		},
+		email: {
+			type: 'string',
+			format: 'email',
+			description: 'User email',
+		},
+		password: {
+			type: 'string',
+			minLength: 8,
+			description: 'Password (minimum 8 characters)',
+		},
+	},
+	required: ['user_name', 'email', 'password'],
+} as const;
+
+export const loginSchema = {
+	type: 'object',
+	properties: {
+		identifier: {
+			type: 'string',
+			minLength: 1,
+			description: 'Email or username',
+		},
+		password: {
+			type: 'string',
+			minLength: 1,
+			description: 'Password',
+		},
+	},
+	required: ['identifier', 'password'],
+} as const;
+
 export const issueTokenSchema = {
 	type: 'object',
 	properties: {

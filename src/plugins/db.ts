@@ -11,7 +11,12 @@ async function dbConnector(app: FastifyInstance) {
 	app.addHook('onClose', async () => {
 		// Only close pool if it's not already closed (prevents double-close errors)
 		if (!pool.ended) {
-			await pool.end();
+			try {
+				await pool.end();
+			} catch (error) {
+				// Ignore errors during cleanup (container may already be closing in tests)
+				console.warn('Error closing database pool in onClose hook:', error);
+			}
 		}
 	});
 }
