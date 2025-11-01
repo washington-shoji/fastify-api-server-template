@@ -45,7 +45,7 @@ export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
 			) {
 				sanitized[key] = sanitizeObject(value);
 			} else if (Array.isArray(value)) {
-				sanitized[key] = value.map((item) =>
+				sanitized[key] = value.map((item: any) =>
 					typeof item === 'string' ? sanitizeString(item) : item
 				) as T[typeof key];
 			} else {
