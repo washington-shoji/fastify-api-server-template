@@ -9,6 +9,13 @@ import {
 	fromLoginDTO,
 	type TokenResponseDTO,
 } from '../dto/auth.dto.js';
+import { setCSRFToken } from '../middlewares/csrf.middleware.js';
+import { generateCSRFToken } from '../utils/tokens.js';
+import {
+	logAuditEvent,
+	AuditEventType,
+	createAuditEntry,
+} from '../utils/auditLogger.js';
 
 export function createAuthController(
 	app: FastifyInstance,
