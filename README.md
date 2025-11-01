@@ -343,4 +343,4 @@ By using this template repository, you acknowledge that:
 
 ## License
 
-Private/Internal use
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
