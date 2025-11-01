@@ -10,10 +10,17 @@ export function createAuthService(
 ) {
 	return {
 		async issueTokens(userId: string) {
+			// Business logic: Verify user exists before issuing tokens
 			const user = await deps.getUserById(userId);
 			if (!user) {
 				throw new NotFoundError('User not found');
 			}
+
+			// Business logic: Could add user status checks here (e.g., is user active, banned, etc.)
+			// if (user.status === 'banned') {
+			//   throw new ForbiddenError('User account is banned');
+			// }
+
 			const payload = { sub: user.id, email: user.email };
 			const accessToken = await app.signAccessToken(payload);
 			const refreshToken = await app.signRefreshToken(payload);

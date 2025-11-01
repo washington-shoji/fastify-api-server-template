@@ -73,10 +73,47 @@ async function start() {
 	const app = await buildServer();
 	try {
 		await app.listen({ port: env.PORT_NUMBER, host: '0.0.0.0' });
+		app.log.info(`Server listening on port ${env.PORT_NUMBER}`);
 	} catch (err) {
 		app.log.error(err);
 		process.exit(1);
 	}
 }
+
+// Graceful shutdown handler
+async function shutdown(signal: string) {
+	console.log(`\n${signal} received. Starting graceful shutdown...`);
+
+	// Import pool to close connections
+	const { pool } = await import('./db/index.js');
+
+	try {
+		// Close all database connections
+		await pool.end();
+		console.log('Database connections closed.');
+
+		// Exit successfully
+		process.exit(0);
+	} catch (error) {
+		console.error('Error during shutdown:', error);
+		process.exit(1);
+	}
+}
+
+// Register shutdown handlers
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+	console.error('Uncaught Exception:', error);
+	shutdown('uncaughtException');
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+	console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+	shutdown('unhandledRejection');
+});
 
 start();
