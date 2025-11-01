@@ -117,14 +117,15 @@ export function createServiceRegistry<T extends Record<string, unknown>>(
 	}
 
 	return {
-		resolve: <K extends keyof T>(name: K) => localContainer.resolve<T[K]>(name),
+		resolve: <K extends keyof T>(name: K) =>
+			localContainer.resolve<T[K]>(String(name)),
 		register: <K extends keyof T>(
 			name: K,
 			factory: Factory<T[K]>,
 			singleton = true
 		) => {
-			localContainer.register(name, factory, singleton);
+			localContainer.register(String(name), factory, singleton);
 		},
-		has: (name: keyof T) => localContainer.has(name as string),
+		has: (name: keyof T) => localContainer.has(String(name)),
 	};
 }
