@@ -3,3 +3,8 @@ dist
 .env
 .DS_Store
 *.log
+
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output
