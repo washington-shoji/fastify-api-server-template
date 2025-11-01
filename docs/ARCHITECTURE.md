@@ -304,6 +304,7 @@ Located in `src/config/swagger.ts` and `src/utils/schemas.ts`:
 `src/types/fastify.d.ts` augments Fastify types:
 
 - `app.db` - Drizzle database instance
+- `app.cache` - Redis cache service (or no-op if Redis unavailable)
 - `app.authenticate` - Authentication guard
 - `app.signAccessToken` - Sign access token
 - `app.signRefreshToken` - Sign refresh token (uses separate secret)
