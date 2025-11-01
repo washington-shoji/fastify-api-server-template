@@ -105,7 +105,16 @@ export function createAuthController(
 
 	async function meHandler(request: FastifyRequest) {
 		// Transform JWT payload to response DTO
-		const userDTO = toUserInfoDTO(request.user);
+		// Type assertion: request.user is guaranteed to be set by JWT authentication
+		const userDTO = toUserInfoDTO(
+			request.user as {
+				sub?: string;
+				email?: string;
+				iat?: number;
+				exp?: number;
+				[key: string]: unknown;
+			}
+		);
 		return { user: userDTO };
 	}
 
