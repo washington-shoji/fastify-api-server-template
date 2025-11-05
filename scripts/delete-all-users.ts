@@ -1,3 +1,14 @@
+/**
+ * ⚠️ DISCLAIMER: This script is for E2E testing purposes only.
+ *
+ * This utility script must be removed or disabled before deploying to production.
+ * This script is included solely to facilitate easy end-to-end testing of the API
+ * by allowing deletion of all users from the database.
+ *
+ * WARNING: This script will delete ALL users and their associated data (todos, API keys).
+ * DO NOT use this script in production environments.
+ */
+
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { users } from '../src/db/schema/users.js';
