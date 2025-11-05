@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fastify API - E2E Test UI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #2563eb;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            font-size: 1.25rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button.secondary {
+            background: #64748b;
+        }
+
+        button.secondary:hover {
+            background: #475569;
+        }
+
+        button.danger {
+            background: #ef4444;
+        }
+
+        button.danger:hover {
+            background: #dc2626;
+        }
+
+        .error {
+            color: #ef4444;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: #10b981;
+            margin-top: 10px;
+        }
+
+        .todo-item {
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background: #f8fafc;
+        }
+
+        .todo-item.completed {
+            opacity: 0.7;
+        }
+
+        .todo-item h3 {
+            margin-bottom: 5px;
+        }
+
+        .todo-item.completed h3 {
+            text-decoration: line-through;
+        }
+
+        .todo-actions {
+            margin-top: 10px;
+        }
+
+        .user-info {
+            background: #eff6ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Fastify API - E2E Test UI</h1>
+
+        <!-- Auth Section -->
+        <div id="auth-section" class="card">
+            <h2>Authentication</h2>
+            <div id="user-info" class="user-info hidden"></div>
+
+            <div id="login-form">
+                <h3>Login</h3>
+                <div class="form-group">
+                    <label>Email/Username:</label>
+                    <input type="text" id="login-identifier" placeholder="email or username">
+                </div>
+                <div class="form-group">
+                    <label>Password:</label>
+                    <input type="password" id="login-password" placeholder="password">
+                </div>
+                <button onclick="handleLogin()">Login</button>
+                <button class="secondary" onclick="showRegister()">Register Instead</button>
+                <div id="login-error" class="error"></div>
+            </div>
+
+            <div id="register-form" class="hidden">
+                <h3>Register</h3>
+                <div class="form-group">
+                    <label>Username:</label>
+                    <input type="text" id="register-username" placeholder="username">
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="register-email" placeholder="email@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password:</label>
+                    <input type="password" id="register-password" placeholder="min 8 characters">
+                </div>
+                <button onclick="handleRegister()">Register</button>
+                <button class="secondary" onclick="showLogin()">Login Instead</button>
+                <div id="register-error" class="error"></div>
+            </div>
+        </div>
+
+        <!-- Todos Section -->
+        <div id="todos-section" class="card hidden">
+            <h2>Todos</h2>
+
+            <!-- Create Todo Form -->
+            <div class="form-group">
+                <label>New Todo:</label>
+                <input type="text" id="todo-title" placeholder="Todo title">
+            </div>
+            <div class="form-group">
+                <label>Description (optional):</label>
+                <textarea id="todo-description" placeholder="Todo description"></textarea>
+            </div>
+            <button onclick="handleCreateTodo()">Create Todo</button>
+            <div id="todo-error" class="error"></div>
+            <div id="todo-success" class="success"></div>
+
+            <!-- Todos List -->
+            <div id="todos-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/v1';
+        let csrfToken = null;
+
+        // Get CSRF token from cookie
+        function getCSRFToken () {
+            const cookies = document.cookie.split( ';' );
+            for ( let cookie of cookies ) {
+                const trimmedCookie = cookie.trim();
+                const equalIndex = trimmedCookie.indexOf( '=' );
+                if ( equalIndex === -1 ) continue;
+
+                const name = trimmedCookie.substring( 0, equalIndex );
+                const value = trimmedCookie.substring( equalIndex + 1 );
+
+                if ( name === 'csrf_token' ) {
+                    // Base64url tokens are URL-safe, but browser might URL-encode them
+                    // Try to decode, but if it fails or is already decoded, return as-is
+                    try {
+                        const decoded = decodeURIComponent( value );
+                        // If decoded value is different, use decoded; otherwise use original
+                        return decoded !== value ? decoded : value;
+                    } catch {
+                        // If decoding fails, return as-is (base64url tokens don't need decoding)
+                        return value;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Make API request with CSRF token
+        async function apiRequest ( url, options = {} ) {
+            const token = getCSRFToken();
+            const hasBody = options.body !== undefined && options.body !== null;
+
+            // Only set Content-Type for JSON if there's actually a body
+            const headers = {
+                ...( hasBody && { 'Content-Type': 'application/json' } ),
+                ...( token && { 'x-csrf-token': token } ),
+                ...options.headers
+            };
+
+            // Debug logging for state-changing requests (remove in production)
+            if ( [ 'POST', 'PUT', 'DELETE', 'PATCH' ].includes( options.method?.toUpperCase() || '' ) ) {
+                console.debug( 'CSRF token check:', {
+                    url,
+                    hasToken: !!token,
+                    tokenLength: token?.length || 0,
+                    tokenPreview: token ? token.substring( 0, 10 ) + '...' : 'none'
+                } );
+            }
+
+            const response = await fetch( `${ API_BASE }${ url }`, {
+                ...options,
+                credentials: 'include', // Include cookies
+                headers
+            } );
+
+            // Handle empty responses (204 No Content, etc.)
+            const contentType = response.headers.get( 'content-type' );
+            const isJson = contentType && contentType.includes( 'application/json' );
+            const hasContent = response.status !== 204 && response.status !== 205;
+
+            let data = null;
+            if ( hasContent && isJson ) {
+                const text = await response.text();
+                data = text ? JSON.parse( text ) : null;
+            }
+
+            if ( !response.ok ) {
+                throw new Error( data?.message || 'Request failed' );
+            }
+
+            return data || {};
+        }
+
+        // Check auth status
+        async function checkAuth () {
+            try {
+                const data = await apiRequest( '/auth/me' );
+                showUserInfo( data.user );
+                showTodosSection();
+            } catch ( error ) {
+                showAuthSection();
+            }
+        }
+
+        // Login
+        async function handleLogin () {
+            const identifier = document.getElementById( 'login-identifier' ).value;
+            const password = document.getElementById( 'login-password' ).value;
+            const errorEl = document.getElementById( 'login-error' );
+
+            if ( !identifier || !password ) {
+                errorEl.textContent = 'Please fill in all fields';
+                return;
+            }
+
+            try {
+                errorEl.textContent = '';
+                await apiRequest( '/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify( { identifier, password } )
+                } );
+
+                // CSRF token is set in cookie via setAuthCookies
+                // Wait a moment for cookie to be available, then fetch user info
+                await new Promise( resolve => setTimeout( resolve, 100 ) );
+                csrfToken = getCSRFToken();
+
+                // Fetch user info from authenticated endpoint
+                const userData = await apiRequest( '/auth/me' );
+                showUserInfo( userData.user );
+                showTodosSection();
+                document.getElementById( 'login-identifier' ).value = '';
+                document.getElementById( 'login-password' ).value = '';
+            } catch ( error ) {
+                errorEl.textContent = error.message;
+            }
+        }
+
+        // Register
+        async function handleRegister () {
+            const username = document.getElementById( 'register-username' ).value;
+            const email = document.getElementById( 'register-email' ).value;
+            const password = document.getElementById( 'register-password' ).value;
+            const errorEl = document.getElementById( 'register-error' );
+
+            if ( !username || !email || !password ) {
+                errorEl.textContent = 'Please fill in all fields';
+                return;
+            }
+
+            if ( password.length < 8 ) {
+                errorEl.textContent = 'Password must be at least 8 characters';
+                return;
+            }
+
+            try {
+                errorEl.textContent = '';
+                await apiRequest( '/auth/register', {
+                    method: 'POST',
+                    body: JSON.stringify( { user_name: username, email, password } )
+                } );
+
+                // CSRF token is set in cookie via setAuthCookies
+                // Wait a moment for cookie to be available, then fetch user info
+                await new Promise( resolve => setTimeout( resolve, 100 ) );
+                csrfToken = getCSRFToken();
+
+                // Fetch user info from authenticated endpoint
+                const userData = await apiRequest( '/auth/me' );
+                showUserInfo( userData.user );
+                showTodosSection();
+                document.getElementById( 'register-username' ).value = '';
+                document.getElementById( 'register-email' ).value = '';
+                document.getElementById( 'register-password' ).value = '';
+            } catch ( error ) {
+                errorEl.textContent = error.message;
+            }
+        }
+
+        // Logout
+        async function handleLogout () {
+            try {
+                // Ensure CSRF token is available before logout
+                const token = getCSRFToken();
+                if ( !token ) {
+                    console.error( 'CSRF token not found in cookies' );
+                    alert( 'Cannot logout: CSRF token missing. Please refresh the page.' );
+                    return;
+                }
+
+                await apiRequest( '/auth/logout', { method: 'POST' } );
+                csrfToken = null;
+                showAuthSection();
+            } catch ( error ) {
+                console.error( 'Logout error:', error );
+                alert( 'Logout failed: ' + error.message );
+            }
+        }
+
+        // Show user info
+        function showUserInfo ( user ) {
+            const userInfoEl = document.getElementById( 'user-info' );
+            userInfoEl.innerHTML = `
+				<strong>Logged in as:</strong> ${ user.user_name } (${ user.email })
+				<button onclick="handleLogout()" style="float: right;">Logout</button>
+			`;
+            userInfoEl.classList.remove( 'hidden' );
+            document.getElementById( 'login-form' ).classList.add( 'hidden' );
+            document.getElementById( 'register-form' ).classList.add( 'hidden' );
+        }
+
+        // Show auth section
+        function showAuthSection () {
+            document.getElementById( 'user-info' ).classList.add( 'hidden' );
+            document.getElementById( 'login-form' ).classList.remove( 'hidden' );
+            document.getElementById( 'register-form' ).classList.add( 'hidden' );
+            document.getElementById( 'todos-section' ).classList.add( 'hidden' );
+        }
+
+        // Show todos section
+        function showTodosSection () {
+            document.getElementById( 'todos-section' ).classList.remove( 'hidden' );
+            loadTodos();
+        }
+
+        // Show login form
+        function showLogin () {
+            document.getElementById( 'login-form' ).classList.remove( 'hidden' );
+            document.getElementById( 'register-form' ).classList.add( 'hidden' );
+        }
+
+        // Show register form
+        function showRegister () {
+            document.getElementById( 'login-form' ).classList.add( 'hidden' );
+            document.getElementById( 'register-form' ).classList.remove( 'hidden' );
+        }
+
+        // Load todos
+        async function loadTodos () {
+            try {
+                const data = await apiRequest( '/todos' );
+                renderTodos( data.todos || data.items || [] );
+            } catch ( error ) {
+                document.getElementById( 'todos-list' ).innerHTML =
+                    `<div class="error">Error loading todos: ${ error.message }</div>`;
+            }
+        }
+
+        // Render todos
+        function renderTodos ( todos ) {
+            const listEl = document.getElementById( 'todos-list' );
+            if ( todos.length === 0 ) {
+                listEl.innerHTML = '<p>No todos yet. Create one above!</p>';
+                return;
+            }
+
+            listEl.innerHTML = todos.map( todo => `
+				<div class="todo-item ${ todo.completed ? 'completed' : '' }">
+					<h3>${ escapeHtml( todo.title ) }</h3>
+					${ todo.description ? `<p>${ escapeHtml( todo.description ) }</p>` : '' }
+					<div class="todo-actions">
+						<button onclick="handleToggleTodo('${ todo.id }', ${ !todo.completed })">
+							${ todo.completed ? 'Mark Incomplete' : 'Mark Complete' }
+						</button>
+						<button class="danger" onclick="handleDeleteTodo('${ todo.id }')">Delete</button>
+					</div>
+				</div>
+			`).join( '' );
+        }
+
+        // Create todo
+        async function handleCreateTodo () {
+            const title = document.getElementById( 'todo-title' ).value;
+            const description = document.getElementById( 'todo-description' ).value;
+            const errorEl = document.getElementById( 'todo-error' );
+            const successEl = document.getElementById( 'todo-success' );
+
+            if ( !title ) {
+                errorEl.textContent = 'Title is required';
+                return;
+            }
+
+            try {
+                errorEl.textContent = '';
+                successEl.textContent = '';
+                await apiRequest( '/todos', {
+                    method: 'POST',
+                    body: JSON.stringify( { title, description: description || null } )
+                } );
+
+                document.getElementById( 'todo-title' ).value = '';
+                document.getElementById( 'todo-description' ).value = '';
+                successEl.textContent = 'Todo created!';
+                setTimeout( () => successEl.textContent = '', 3000 );
+                loadTodos();
+            } catch ( error ) {
+                errorEl.textContent = error.message;
+            }
+        }
+
+        // Toggle todo completion
+        async function handleToggleTodo ( id, completed ) {
+            try {
+                await apiRequest( `/todos/${ id }`, {
+                    method: 'PUT',
+                    body: JSON.stringify( { completed } )
+                } );
+                loadTodos();
+            } catch ( error ) {
+                alert( 'Error updating todo: ' + error.message );
+            }
+        }
+
+        // Delete todo
+        async function handleDeleteTodo ( id ) {
+            if ( !confirm( 'Are you sure you want to delete this todo?' ) ) return;
+            const errorEl = document.getElementById( 'todo-error' );
+            const successEl = document.getElementById( 'todo-success' );
+            try {
+                errorEl.textContent = '';
+                successEl.textContent = '';
+                await apiRequest( `/todos/${ id }`, { method: 'DELETE' } );
+                successEl.textContent = 'Todo deleted successfully!';
+                setTimeout( () => successEl.textContent = '', 3000 );
+                loadTodos();
+            } catch ( error ) {
+                errorEl.textContent = 'Error deleting todo: ' + error.message;
+                successEl.textContent = '';
+            }
+        }
+
+        // Escape HTML
+        function escapeHtml ( text ) {
+            const div = document.createElement( 'div' );
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize on load
+        checkAuth();
+    </script>
+</body>
+
+</html>

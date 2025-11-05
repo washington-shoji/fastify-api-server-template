@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin';
 import jwt from '@fastify/jwt';
-import * as jsonwebtoken from 'jsonwebtoken';
+import jsonwebtoken from 'jsonwebtoken';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { env } from '../env.js';
 import { UnauthorizedError } from '../utils/errors.js';
@@ -16,8 +16,8 @@ async function jwtPlugin(app: FastifyInstance) {
 			cookieName: 'access_token',
 			signed: false,
 		},
-		// Explicitly configure to read from Authorization header (this is default, but being explicit)
-		// The plugin automatically reads from Authorization: Bearer <token> by default
+		// Don't automatically verify tokens - only verify when jwtVerify() is explicitly called
+		// This allows public endpoints like register/login to work without tokens
 	});
 
 	// Create a separate JWT instance for refresh tokens

@@ -45,10 +45,27 @@ export async function buildServer() {
 	// Setup request ID middleware for correlation tracking
 	setupRequestIdMiddleware(app);
 
+	// Configure CORS based on environment (needed for credentials)
+	await app.register(cors, {
+		origin: env.CORS_ORIGINS,
+		credentials: true,
+	});
+
+	// Register cookie plugin BEFORE CSRF middleware (CSRF needs cookies)
+	await app.register(cookie, {
+		parseOptions: {
+			httpOnly: true,
+			secure: env.COOKIE_SECURE === 'true',
+			sameSite: 'lax',
+			domain: env.COOKIE_DOMAIN,
+		},
+	});
+
 	// Setup auth middleware to extract userId automatically
 	setupAuthMiddleware(app);
 
 	// Setup CSRF protection (for state-changing requests)
+	// Must be AFTER cookie plugin registration
 	setupCSRFProtection(app);
 
 	// Setup rate limiting (before routes)
@@ -59,21 +76,6 @@ export async function buildServer() {
 
 	// Setup ETag middleware for HTTP caching
 	setupETagMiddleware(app);
-
-	// Configure CORS based on environment
-	await app.register(cors, {
-		origin: env.CORS_ORIGINS,
-		credentials: true,
-	});
-
-	await app.register(cookie, {
-		parseOptions: {
-			httpOnly: true,
-			secure: env.COOKIE_SECURE === 'true',
-			sameSite: 'lax',
-			domain: env.COOKIE_DOMAIN,
-		},
-	});
 
 	// Register response compression (gzip, deflate)
 	if (env.ENABLE_COMPRESSION) {
@@ -100,6 +102,21 @@ export async function buildServer() {
 	// registerServices(app);
 
 	await app.register(healthRoutes);
+
+	// Serve UI for e2e testing (simple HTML page)
+	app.get('/ui', async (_request, reply) => {
+		const { readFile } = await import('fs/promises');
+		const { join } = await import('path');
+		const { fileURLToPath } = await import('url');
+		const { dirname } = await import('path');
+		const __filename = fileURLToPath(import.meta.url);
+		const __dirname = dirname(__filename);
+		const html = await readFile(
+			join(__dirname, '..', 'public', 'index.html'),
+			'utf-8'
+		);
+		return reply.type('text/html; charset=utf-8').send(html);
+	});
 
 	// Version 1 API routes
 	const { authV1Routes } = await import('./routes/v1/auth.js');

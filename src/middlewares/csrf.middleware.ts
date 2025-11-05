@@ -33,12 +33,31 @@ export function setupCSRFProtection(app: FastifyInstance) {
 				return;
 			}
 
-			// Skip CSRF check for health endpoints and Swagger UI
+			// Skip CSRF check for health endpoints, Swagger UI, UI page, and auth endpoints (register/login don't require CSRF)
+			// Normalize URL by removing query parameters for exact matching
+			const urlPath = request.url.split('?')[0].replace(/\/$/, ''); // Remove trailing slash and query params
+
+			// Check if this is an auth endpoint that doesn't require CSRF
+			// Register/login don't require CSRF because users don't have tokens yet
+			// Logout requires CSRF because it's a state-changing operation after authentication
+			const isPublicAuthEndpoint =
+				urlPath === '/v1/auth/register' || urlPath === '/v1/auth/login';
+
 			if (
 				request.url.startsWith('/health') ||
 				request.url.startsWith('/docs') ||
-				request.url.startsWith('/internal')
+				request.url.startsWith('/internal') ||
+				request.url.startsWith('/ui') ||
+				isPublicAuthEndpoint
 			) {
+				// Skip CSRF check for these endpoints
+				// Debug logging (remove in production)
+				if (process.env.NODE_ENV !== 'production' && isPublicAuthEndpoint) {
+					request.log.debug(
+						{ url: request.url, urlPath, isPublicAuthEndpoint },
+						'CSRF check skipped for public auth endpoint'
+					);
+				}
 				return;
 			}
 
@@ -55,6 +74,25 @@ export function setupCSRFProtection(app: FastifyInstance) {
 
 			// Both token sources must be present and match
 			if (!csrfTokenFromCookie || !csrfTokenFromHeader) {
+				// Debug logging to help diagnose CSRF issues
+				if (process.env.NODE_ENV !== 'production') {
+					request.log.debug(
+						{
+							url: request.url,
+							method: request.method,
+							hasCookie: !!csrfTokenFromCookie,
+							hasHeader: !!csrfTokenFromHeader,
+							cookieValue: csrfTokenFromCookie
+								? `${csrfTokenFromCookie.substring(0, 10)}...`
+								: 'none',
+							headerValue: csrfTokenFromHeader
+								? `${csrfTokenFromHeader.substring(0, 10)}...`
+								: 'none',
+							allCookies: Object.keys(request.cookies || {}),
+						},
+						'CSRF token missing'
+					);
+				}
 				logAuditEvent(
 					app,
 					createAuditEntry(request, AuditEventType.CSRF_VIOLATION, 'failure', {
