@@ -403,7 +403,6 @@ src/
 ### Additional Security Features ✅ **IMPLEMENTED**
 
 - ✅ **Security headers middleware** - Helmet-like functionality (`src/middlewares/securityHeaders.middleware.ts`)
-
   - Content Security Policy (CSP) - XSS protection
   - X-Content-Type-Options - prevents MIME type sniffing
   - X-Frame-Options - prevents clickjacking
@@ -414,7 +413,6 @@ src/
   - Removes X-Powered-By header
 
 - ✅ **CSRF protection** - Double Submit Cookie pattern (`src/middlewares/csrf.middleware.ts`)
-
   - Protects state-changing operations (POST, PUT, DELETE, PATCH)
   - Uses Double Submit Cookie pattern (CSRF token in both cookie and header)
   - Configurable via `ENABLE_CSRF` environment variable
@@ -422,7 +420,6 @@ src/
   - Constant-time comparison to prevent timing attacks
 
 - ✅ **Audit logging** - Security event logging (`src/utils/auditLogger.ts`)
-
   - Comprehensive audit log utility for security events
   - Logs authentication events (login, logout, registration, token refresh)
   - Logs authorization failures (unauthorized access, CSRF violations)
@@ -478,6 +475,7 @@ src/
    - Health check tests
    - Authentication tests (including registration, login, logout - 13 tests)
    - Todo CRUD tests
+   - CSRF protection tests (19 tests covering safe methods, state-changing requests, token validation, public endpoints, logout, and excluded endpoints)
 2. ✅ **Unit Tests:** Service layer business logic (Implemented)
    - `todoService` unit tests - Business logic validation (20 tests)
    - `authService` unit tests - Token issuance, refresh, registration, login (6 tests)
@@ -499,7 +497,9 @@ src/
 - ✅ **Vitest** for test framework (Configured)
 - ✅ **Fastify inject** for API testing (Used in integration tests)
 - ✅ **Testcontainers** for database testing (Implemented with PostgreSQL containers)
+- ✅ **Integration Tests** for API endpoints including CSRF protection (32 integration tests)
 - ✅ **Unit Tests** for services and repositories (63 unit tests implemented)
+- ✅ **Total: 105 tests** (32 integration + 63 unit tests)
 - ✅ **Coverage:** Infrastructure ready (`@vitest/coverage-v8` integrated, can run with `npm run test:coverage`)
 - ✅ **CI/CD Safe** - Test setup prevents false failures from container cleanup errors
 
@@ -565,7 +565,6 @@ src/
 ### Recent Additions (Since Last Analysis)
 
 - ✅ **User Registration & Login** - Complete password-based authentication flow
-
   - User registration with unique email/username validation
   - Login with email or username
   - Password hashing with bcryptjs (10 salt rounds)
@@ -574,14 +573,12 @@ src/
   - Integration tests for all authentication endpoints (13 tests)
 
 - ✅ **CI/CD Test Improvements** - Production-ready test infrastructure
-
   - Graceful database connection closure before container shutdown
   - Connection termination error suppression (prevents false CI/CD failures)
   - Process-level error handlers for both async and sync errors
   - All tests exit with code 0 on success
 
 - ✅ **Security Enhancements** - Enterprise-grade security features
-
   - Security headers middleware (CSP, HSTS, X-Frame-Options, etc.)
   - CSRF protection with Double Submit Cookie pattern
   - Comprehensive audit logging for security events

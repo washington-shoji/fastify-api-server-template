@@ -39,9 +39,12 @@ export function setupCSRFProtection(app: FastifyInstance) {
 
 			// Check if this is an auth endpoint that doesn't require CSRF
 			// Register/login don't require CSRF because users don't have tokens yet
+			// Token endpoint is excluded for testing purposes (internal testing endpoint)
 			// Logout requires CSRF because it's a state-changing operation after authentication
 			const isPublicAuthEndpoint =
-				urlPath === '/v1/auth/register' || urlPath === '/v1/auth/login';
+				urlPath === '/v1/auth/register' ||
+				urlPath === '/v1/auth/login' ||
+				urlPath === '/v1/auth/token'; // Token endpoint excluded for testing (internal endpoint)
 
 			if (
 				request.url.startsWith('/health') ||

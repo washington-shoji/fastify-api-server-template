@@ -180,6 +180,7 @@ tests/
     health.test.ts    # Health check tests
     auth.test.ts      # Authentication tests
     todo.test.ts      # Todo CRUD tests
+    csrf.test.ts      # CSRF protection tests (19 tests covering all CSRF scenarios)
   helpers/
     testDb.ts        # Testcontainers helper for database lifecycle
   setup.ts            # Test setup and configuration (Testcontainers integration)

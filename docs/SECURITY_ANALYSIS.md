@@ -388,6 +388,26 @@ The project demonstrates **excellent security practices** with comprehensive pro
 
 ---
 
+## ✅ Testing & Validation
+
+### CSRF Protection Tests
+
+Comprehensive integration tests for CSRF protection are implemented:
+
+- **19 CSRF tests** covering all scenarios:
+  - Safe HTTP methods (GET, HEAD) - no CSRF required
+  - State-changing requests (POST, PUT, DELETE) - CSRF required
+  - CSRF token validation (mismatched tokens, missing cookie/header, alternative header names)
+  - Public endpoints (register/login) - no CSRF required
+  - Logout endpoint - CSRF required
+  - Excluded endpoints (health, docs, ui) - no CSRF required
+
+Tests verify CSRF protection works correctly when enabled (`ENABLE_CSRF=true`) and properly exclude endpoints that don't require CSRF tokens.
+
+**Test File:** `tests/integration/csrf.test.ts`
+
+---
+
 **Report Generated:** 2025-11-12  
 **Reviewed By:** Automated Security Analysis  
 **Next Review:** After significant changes or every 6 months
