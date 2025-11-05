@@ -48,6 +48,14 @@ export default [
 		},
 	},
 	{
+		files: ['src/static/**/*.js'],
+		languageOptions: {
+			globals: {
+				...globals.browser,
+			},
+		},
+	},
+	{
 		ignores: [
 			'node_modules/**',
 			'dist/**',

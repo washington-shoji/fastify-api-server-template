@@ -123,7 +123,7 @@ export function setupQueryMonitoring(
 
 	// Hook to log slow queries
 	app.addHook('onResponse', async (request: FastifyRequest, reply) => {
-		const duration = reply.getResponseTime();
+		const duration = reply.elapsedTime;
 
 		if (duration > slowQueryThreshold) {
 			request.log.warn(

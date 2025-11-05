@@ -27,6 +27,17 @@ export function setupETagMiddleware(app: FastifyInstance) {
 				return payload;
 			}
 
+			// Skip ETag for HTML pages (views) - they should always be fresh
+			if (
+				request.url &&
+				!request.url.startsWith('/static') &&
+				!request.url.startsWith('/v1') &&
+				!request.url.startsWith('/docs') &&
+				!request.url.startsWith('/health')
+			) {
+				return payload;
+			}
+
 			// Skip ETag for non-string payloads (Buffer, stream, etc.)
 			if (payload === null || payload === undefined) {
 				return payload;
